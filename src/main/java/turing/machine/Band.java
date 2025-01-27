@@ -2,10 +2,14 @@ package turing.machine;
 
 import java.util.Arrays;
 
-class Band {
+import static java.lang.String.format;
+
+public class Band {
     private static final int INITIAL_SIZE = 32;
     private static final int EXPAND_SIZE = 16;
     private static final char EMPTY_CHARACTER = '#';
+    private static final String TRIM_LEFT_PATTERN = format("^%s+", EMPTY_CHARACTER);
+    private static final String TRIM_RIGHT_PATTERN = format("%s+$", EMPTY_CHARACTER);
 
     private char[] backingArray;
     private int headPos;
@@ -54,6 +58,15 @@ class Band {
 
     @Override
     public String toString() {
-        return Arrays.toString(backingArray) + System.lineSeparator() + "-".repeat(headPos) + "^";
+        return new String(backingArray);
+    }
+
+    public String currentWord() {
+        int start = 0;
+        int end = backingArray.length;
+        while (start < end && backingArray[start] == EMPTY_CHARACTER) start++;
+        while (start < end && backingArray[end - 1] == EMPTY_CHARACTER) end--;
+        int length = end - start;
+        return length <= 0 ? "" : new String(backingArray, start, length);
     }
 }

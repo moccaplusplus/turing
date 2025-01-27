@@ -1,10 +1,10 @@
 package turing.machine;
 
 public record Transition(
-//        String fromState,
-//        char readChar,
+        String fromState,
+        char readCharacter,
         String toState,
-        char writeChar,
-        String moveDir
+        char writeCharacter,
+        String moveDirection
 ) {
 }
