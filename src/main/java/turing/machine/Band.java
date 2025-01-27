@@ -11,16 +11,14 @@ class Band {
     private int headPos;
 
     public void reset(String word) {
-        headPos = 0;
         int bandSize = INITIAL_SIZE;
         if (bandSize < word.length()) {
             bandSize += (int) (Math.ceil((double) (word.length() - INITIAL_SIZE) / EXPAND_SIZE) * EXPAND_SIZE);
         }
         backingArray = new char[bandSize];
-        System.arraycopy(word.toCharArray(), 0, backingArray, 0, word.length());
-        if (backingArray.length > word.length()) {
-            Arrays.fill(backingArray, word.length(), backingArray.length, EMPTY_CHARACTER);
-        }
+        Arrays.fill(backingArray, EMPTY_CHARACTER);
+        System.arraycopy(word.toCharArray(), 0, backingArray, 1, word.length());
+        headPos = 1;
     }
 
     public char read() {
@@ -56,6 +54,6 @@ class Band {
 
     @Override
     public String toString() {
-        return Arrays.toString(backingArray) + System.lineSeparator() + "-".repeat(Math.max(0, headPos)) + "^";
+        return Arrays.toString(backingArray) + System.lineSeparator() + "-".repeat(headPos) + "^";
     }
 }

@@ -1,6 +1,6 @@
 package turing.machine;
 
-public record TransitionDef(
+public record Transition(
 //        String fromState,
 //        char readChar,
         String toState,
