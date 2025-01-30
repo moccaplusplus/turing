@@ -12,6 +12,7 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.lang.System.err;
 import static java.util.stream.Collectors.toSet;
+import static turing.machine.Utils.indent;
 
 public record Settings(
         Set<Character> bandAlphabet,
@@ -70,6 +71,13 @@ public record Settings(
         }
     }
 
+    private static void validateDirection(String direction) {
+        switch (direction) {
+            case "L", "P": return;
+            default: throw new IllegalStateException(format("Move Direction \"%s\" is not valid", direction));
+        }
+    }
+
     public void validate() {
         validateWord();
         validateStartState();
@@ -108,13 +116,26 @@ public record Settings(
     private void validateTransitions() {
         try {
             for (var transition : transitions()) {
-                validateCharacter(bandAlphabet(), transition.readCharacter());
-                validateCharacter(bandAlphabet(), transition.writeCharacter());
+                validateCharacter(bandAlphabet(), transition.readChar());
+                validateCharacter(bandAlphabet(), transition.writeChar());
                 validateState(states(), transition.fromState());
                 validateState(states(), transition.toState());
+                validateDirection(transition.moveDir());
             }
         } catch (Exception e) {
             throw new IllegalStateException("Invalid transition", e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Band Alphabet: " + bandAlphabet() +
+                "\nInput Alphabet: " + inputAlphabet() +
+                "\nWord: " + word() +
+                "\nStates: " + states() +
+                "\nStart State: " + startState() +
+                "\nFinal States: " + finalStates() +
+                "\nTransitions: (Count=" + transitions().size() + ")\n" +
+                indent(Transition.toString(transitions()));
     }
 }

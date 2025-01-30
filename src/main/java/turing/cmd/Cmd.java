@@ -1,4 +1,7 @@
-package turing.machine;
+package turing.cmd;
+
+import turing.machine.Machine;
+import turing.machine.Settings;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,19 +15,19 @@ import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static turing.machine.Utils.indent;
 
 public record Cmd(
         Settings settings,
         PrintStream log
-) {
+) implements Runnable, AutoCloseable {
     private static final int REPORT_ITERATIONS_UNTIL = 5000;
     private static final Charset DEFAULT_CHARSET = UTF_8;
     private static final String DEFAULT_OUT = "./out.log";
 
     public static void main(String... args) {
-        out.println("Turing Machine");
-        try {
-            parseArgs(args).run();
+        try (var cmd = fromArgs(args)) {
+            cmd.run();
         } catch (Exception e) {
             err.printf("%s: %s%n", e.getClass().getSimpleName(), e.getMessage());
             if (e instanceof InstantiationException) {
@@ -34,7 +37,7 @@ public record Cmd(
         }
     }
 
-    private static Cmd parseArgs(String[] args) throws InstantiationException, IOException {
+    private static Cmd fromArgs(String... args) throws InstantiationException, IOException {
         Charset charset = DEFAULT_CHARSET;
         String input = null;
         String output = DEFAULT_OUT;
@@ -50,13 +53,11 @@ public record Cmd(
             }
         }
         if (input == null) {
-            throw new InstantiationException("Input path  is null");
+            throw new InstantiationException("Input path is null");
         }
-        var inputPath = Path.of(input);
-        var outputPath = Path.of(output);
-        var settings = Settings.readFromFile(inputPath, charset);
-        settings.validate();
-        return new Cmd(settings, logger(outputPath));
+        var settings = Settings.readFromFile(Path.of(input), charset);
+        var log = new PrintStream(logOutputStream(Files.newOutputStream(Path.of(output))));
+        return new Cmd(settings, log);
     }
 
     private static void usage() {
@@ -68,10 +69,8 @@ public record Cmd(
         out.printf("%6s, %-18s %s%n", "-h", "--help", "Prints help.");
     }
 
-    private static PrintStream logger(Path path) throws IOException {
-        return new PrintStream(new OutputStream() {
-            private final OutputStream fileStream = Files.newOutputStream(path);
-
+    private static OutputStream logOutputStream(OutputStream fileStream) {
+        return new OutputStream() {
             @Override
             public void write(int b) throws IOException {
                 out.write(b);
@@ -79,37 +78,60 @@ public record Cmd(
             }
 
             @Override
+            public void flush() throws IOException {
+                out.flush();
+                fileStream.flush();
+            }
+
+            @Override
             public void close() throws IOException {
                 fileStream.close();
             }
-        });
+        };
     }
 
-    void run() {
+    @Override
+    public void run() {
         settings.validate();
-        log.println(settings);
+        log.println("Machine Settings:");
+        log.println(indent(settings));
+
+        long start = System.currentTimeMillis();
 
         var machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
         machine.init(settings.word());
+        log.println("Machine Initialized:");
+        log.println(indent(machine.toString()));
 
-        log.println(machine.band);
         int iteration = 0;
         while (!machine.isInFinalState()) {
-            iteration++;
             var transition = machine.proceed();
-            if (iteration <= REPORT_ITERATIONS_UNTIL) {
-                log.printf("Iteration %d, processed transition: %s%n", iteration, transition);
-                log.println(machine.band);
-            }
-            if (machine.isInFinalState()) {
-                log.println("Machine finished in accepting state");
-                log.printf("Input word: %s, Computed word: %s%n", settings.word(), machine.band.currentWord());
-                exit(0);
-            }
             if (transition == null) {
-                log.println("Machine finished in non-accepting state");
-                exit(2);
+                break;
+            }
+            iteration++;
+            if (iteration <= REPORT_ITERATIONS_UNTIL /*|| iteration % 1000 == 0 */) {
+                log.println("Iteration: " + iteration);
+                log.println(indent("Applied Transition:\n" + indent(transition)));
+                log.println(indent("Machine State After Transition:\n" + indent(machine)));
             }
         }
+
+        long time = System.currentTimeMillis() - start;
+
+        if (machine.isInFinalState()) {
+            log.println("Machine Finished in Accepting State:");
+            log.println(indent("Input word: " + settings.word()));
+            log.println(indent("Computed word: " + machine.band().currentWord()));
+        } else {
+            log.println("Machine Finished in Non-Accepting State:");
+        }
+        log.println(indent("Iterations: " + iteration));
+        log.println(indent("Time: " + time + "ms"));
+    }
+
+    @Override
+    public void close() {
+        log.close();
     }
 }

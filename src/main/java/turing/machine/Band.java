@@ -2,22 +2,18 @@ package turing.machine;
 
 import java.util.Arrays;
 
-import static java.lang.String.format;
-
 public class Band {
     private static final int INITIAL_SIZE = 32;
     private static final int EXPAND_SIZE = 16;
     private static final char EMPTY_CHARACTER = '#';
-    private static final String TRIM_LEFT_PATTERN = format("^%s+", EMPTY_CHARACTER);
-    private static final String TRIM_RIGHT_PATTERN = format("%s+$", EMPTY_CHARACTER);
 
     private char[] backingArray;
     private int headPos;
 
     public void reset(String word) {
         int bandSize = INITIAL_SIZE;
-        if (bandSize < word.length()) {
-            bandSize += (int) (Math.ceil((double) (word.length() - INITIAL_SIZE) / EXPAND_SIZE) * EXPAND_SIZE);
+        if (bandSize < word.length() + 2) {
+            bandSize += (int) (Math.ceil((double) (word.length() + 2 - INITIAL_SIZE) / EXPAND_SIZE) * EXPAND_SIZE);
         }
         backingArray = new char[bandSize];
         Arrays.fill(backingArray, EMPTY_CHARACTER);
@@ -33,7 +29,8 @@ public class Band {
         backingArray[headPos] = character;
         switch (move) {
             case "L", "l" -> moveLeft();
-            case "R", "r" -> moveRight();
+            case "P", "p" -> moveRight();
+            default -> throw new IllegalStateException("Invalid move direction: " + character);
         }
     }
 
@@ -56,9 +53,8 @@ public class Band {
         }
     }
 
-    @Override
-    public String toString() {
-        return new String(backingArray);
+    public int headPos() {
+        return headPos;
     }
 
     public String currentWord() {
@@ -68,5 +64,10 @@ public class Band {
         while (start < end && backingArray[end - 1] == EMPTY_CHARACTER) end--;
         int length = end - start;
         return length <= 0 ? "" : new String(backingArray, start, length);
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(backingArray) + "\n" + "-".repeat(headPos) + "^";
     }
 }
