@@ -8,7 +8,6 @@ import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
-import static turing.machine.Utils.indent;
 
 public class Machine {
     private final Band band = new Band();
@@ -46,8 +45,7 @@ public class Machine {
         return band;
     }
 
-    @Override
-    public String toString() {
-        return "State: " + state + "\nBand:\n" + indent(band);
+    public String state() {
+        return state;
     }
 }

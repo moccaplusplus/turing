@@ -1,11 +1,11 @@
 package turing.cmd;
 
+import turing.machine.Log;
 import turing.machine.Machine;
 import turing.machine.Settings;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,11 +15,10 @@ import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static turing.machine.Utils.indent;
 
 public record Cmd(
         Settings settings,
-        PrintStream log
+        Log log
 ) implements Runnable, AutoCloseable {
     private static final int REPORT_ITERATIONS_UNTIL = 5000;
     private static final Charset DEFAULT_CHARSET = UTF_8;
@@ -55,8 +54,8 @@ public record Cmd(
         if (input == null) {
             throw new InstantiationException("Input path is null");
         }
-        var settings = Settings.readFromFile(Path.of(input), charset);
-        var log = new PrintStream(logOutputStream(Files.newOutputStream(Path.of(output))));
+        var settings = Settings.read(Path.of(input), charset);
+        var log = new Log(logOutputStream(Files.newOutputStream(Path.of(output))));
         return new Cmd(settings, log);
     }
 
@@ -93,15 +92,13 @@ public record Cmd(
     @Override
     public void run() {
         settings.validate();
-        log.println("Machine Settings:");
-        log.println(indent(settings));
+        log.settings(settings);
 
         long start = System.currentTimeMillis();
 
         var machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
         machine.init(settings.word());
-        log.println("Machine Initialized:");
-        log.println(indent(machine.toString()));
+        log.initialized(machine);
 
         int iteration = 0;
         while (!machine.isInFinalState()) {
@@ -111,23 +108,12 @@ public record Cmd(
             }
             iteration++;
             if (iteration <= REPORT_ITERATIONS_UNTIL /*|| iteration % 1000 == 0 */) {
-                log.println("Iteration: " + iteration);
-                log.println(indent("Applied Transition:\n" + indent(transition)));
-                log.println(indent("Machine State After Transition:\n" + indent(machine)));
+                log.iteration(iteration, transition, machine);
             }
         }
 
         long time = System.currentTimeMillis() - start;
-
-        if (machine.isInFinalState()) {
-            log.println("Machine Finished in Accepting State:");
-            log.println(indent("Input word: " + settings.word()));
-            log.println(indent("Computed word: " + machine.band().currentWord()));
-        } else {
-            log.println("Machine Finished in Non-Accepting State:");
-        }
-        log.println(indent("Iterations: " + iteration));
-        log.println(indent("Time: " + time + "ms"));
+        log.result(machine, settings.word(), iteration, time);
     }
 
     @Override

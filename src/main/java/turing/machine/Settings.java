@@ -1,6 +1,9 @@
 package turing.machine;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,7 +15,6 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.lang.System.err;
 import static java.util.stream.Collectors.toSet;
-import static turing.machine.Utils.indent;
 
 public record Settings(
         Set<Character> bandAlphabet,
@@ -23,34 +25,44 @@ public record Settings(
         Set<String> finalStates,
         Set<Transition> transitions
 ) {
-    public static Settings readFromFile(Path path, Charset charset) throws IOException {
+    public static Settings read(Path path, Charset charset) throws IOException {
         try (var reader = Files.newBufferedReader(path, charset)) {
-            expectHeader(reader.readLine(), "alfabet tasmowy:");
-            var bandAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
-
-            expectHeader(reader.readLine(), "alfabet wejsciowy:");
-            var inputAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
-
-            expectHeader(reader.readLine(), "slowo wejsciowe:");
-            var word = reader.readLine();
-
-            expectHeader(reader.readLine(), "stany:");
-            var states = Arrays.stream(reader.readLine().split(" ")).collect(toSet());
-
-            expectHeader(reader.readLine(), "stan poczatkowy:");
-            var startState = reader.readLine();
-
-            expectHeader(reader.readLine(), "stany akceptujace:");
-            var finalStates = Arrays.stream(reader.readLine().split(" ")).collect(toSet());
-
-            expectHeader(reader.readLine(), "relacja przejscia:");
-            var transitions = new HashSet<Transition>();
-            for (var line = reader.readLine(); line != null; line = reader.readLine()) {
-                var split = line.split(" ");
-                transitions.add(new Transition(split[0], split[1].charAt(0), split[2], split[3].charAt(0), split[4]));
-            }
-            return new Settings(bandAlphabet, inputAlphabet, word, states, startState, finalStates, transitions);
+            return read(reader);
         }
+    }
+
+    public static Settings read(InputStream inputStream, Charset charset) throws IOException {
+        try (var reader = new BufferedReader(new InputStreamReader(inputStream, charset))) {
+            return read(reader);
+        }
+    }
+
+    public static Settings read(BufferedReader reader) throws IOException {
+        expectHeader(reader.readLine(), "alfabet tasmowy:");
+        var bandAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
+
+        expectHeader(reader.readLine(), "alfabet wejsciowy:");
+        var inputAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
+
+        expectHeader(reader.readLine(), "slowo wejsciowe:");
+        var word = reader.readLine();
+
+        expectHeader(reader.readLine(), "stany:");
+        var states = Arrays.stream(reader.readLine().split(" ")).collect(toSet());
+
+        expectHeader(reader.readLine(), "stan poczatkowy:");
+        var startState = reader.readLine();
+
+        expectHeader(reader.readLine(), "stany akceptujace:");
+        var finalStates = Arrays.stream(reader.readLine().split(" ")).collect(toSet());
+
+        expectHeader(reader.readLine(), "relacja przejscia:");
+        var transitions = new HashSet<Transition>();
+        for (var line = reader.readLine(); line != null; line = reader.readLine()) {
+            var split = line.split(" ");
+            transitions.add(new Transition(split[0], split[1].charAt(0), split[2], split[3].charAt(0), split[4]));
+        }
+        return new Settings(bandAlphabet, inputAlphabet, word, states, startState, finalStates, transitions);
     }
 
     private static <T> void expectHeader(T actual, T expected) {
@@ -73,8 +85,10 @@ public record Settings(
 
     private static void validateDirection(String direction) {
         switch (direction) {
-            case "L", "P": return;
-            default: throw new IllegalStateException(format("Move Direction \"%s\" is not valid", direction));
+            case "L", "P":
+                return;
+            default:
+                throw new IllegalStateException(format("Move Direction \"%s\" is not valid", direction));
         }
     }
 
@@ -125,17 +139,5 @@ public record Settings(
         } catch (Exception e) {
             throw new IllegalStateException("Invalid transition", e);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "Band Alphabet: " + bandAlphabet() +
-                "\nInput Alphabet: " + inputAlphabet() +
-                "\nWord: " + word() +
-                "\nStates: " + states() +
-                "\nStart State: " + startState() +
-                "\nFinal States: " + finalStates() +
-                "\nTransitions: (Count=" + transitions().size() + ")\n" +
-                indent(Transition.toString(transitions()));
     }
 }

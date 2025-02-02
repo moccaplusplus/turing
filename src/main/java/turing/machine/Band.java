@@ -3,9 +3,9 @@ package turing.machine;
 import java.util.Arrays;
 
 public class Band {
-    private static final int INITIAL_SIZE = 32;
-    private static final int EXPAND_SIZE = 16;
-    private static final char EMPTY_CHARACTER = '#';
+    public static final int INITIAL_SIZE = 32;
+    public static final int EXPAND_SIZE = 16;
+    public static final char EMPTY_CHARACTER = '#';
 
     private char[] backingArray;
     private int headPos;
@@ -35,7 +35,7 @@ public class Band {
     }
 
     private void moveLeft() {
-        if (--headPos < 0) {
+        if (--headPos == -1) {
             var oldBackingArray = backingArray;
             backingArray = new char[backingArray.length + EXPAND_SIZE];
             System.arraycopy(oldBackingArray, 0, backingArray, EXPAND_SIZE, oldBackingArray.length);
@@ -45,7 +45,7 @@ public class Band {
     }
 
     private void moveRight() {
-        if (++headPos >= backingArray.length) {
+        if (++headPos == backingArray.length) {
             var oldBackingArray = backingArray;
             backingArray = new char[backingArray.length + EXPAND_SIZE];
             System.arraycopy(oldBackingArray, 0, backingArray, 0, oldBackingArray.length);
@@ -57,6 +57,14 @@ public class Band {
         return headPos;
     }
 
+    public String bandStr() {
+        return String.valueOf(backingArray);
+    }
+
+    public int length() {
+        return backingArray.length;
+    }
+
     public String currentWord() {
         int start = 0;
         int end = backingArray.length;
@@ -64,10 +72,5 @@ public class Band {
         while (start < end && backingArray[end - 1] == EMPTY_CHARACTER) end--;
         int length = end - start;
         return length <= 0 ? "" : new String(backingArray, start, length);
-    }
-
-    @Override
-    public String toString() {
-        return String.valueOf(backingArray) + "\n" + "-".repeat(headPos) + "^";
     }
 }

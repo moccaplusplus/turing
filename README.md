@@ -16,6 +16,11 @@ wpisujemy w konsoli:
 ```
 Zbudowany projekt znajduje się w katalogu `target`.
 
+Aby zbudować projekt bez uruchamiania testów wystarczy dodać opcję `-DskipTests`.
+```shell
+./mvnw package -DskipTests
+```
+
 ## Uruchomienie Projektu
 
 ### Uruchomienie w trybie help
@@ -46,3 +51,5 @@ w katalogu głównym projektu, wpisujemy w konsoli:
 ```shell
 ./target/turing-machine ./src/test/resources/input.txt
 ```
+Wynik działania programu znajduje się w pliku `out.log` w katalogu, w którym 
+uruchomiliśmy program (o ile nie podaliśmy innej ścieżki w opcjach uruchomienia programu)
