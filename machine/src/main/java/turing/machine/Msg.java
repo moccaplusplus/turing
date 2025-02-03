@@ -14,6 +14,10 @@ public interface Msg {
     String TRANSITION_HEAD = format(TRANSITION_FORMAT, "From", "To", "Read", "Write", "Move");
     String TRANSITION_NEXT_FORMAT = "%n" + TRANSITION_FORMAT;
 
+    static String msg(Throwable error) {
+        return error.getCause() == null ? error.toString() : format("%s%n%s", error, msg(error.getCause()));
+    }
+
     static String msg(Band band) {
         return format(BAND_FORMAT, band.bandStr(), "-".repeat(band.headPos()));
     }

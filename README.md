@@ -6,21 +6,37 @@
 - Należy pamiętać o ustawieniu zmiennej środowiskowej `JAVA_HOME` wskazującej
       na katalog gdzie zainstalowaliśmy JDK.
 
+## Krótki Opis
+
+Projekt składa się z dwóch podprojektów:
+
+- machine - zawiera faktyczną implementację maszyny i prosty interfejs commandline.
+- gui - dodaje interfejs uzytkownika GUI. 
+
+Które znajdują się w podkatalogach o nazwach `machine` i `gui`.
+
+
 ## Budowanie Projektu
 
-Abu zbudować projekt, w katalogu głównym projektu
+Abu zbudować projekt (oba podrpojekty), w katalogu głównym projektu
 wpisujemy w konsoli:
 
 ```shell
-./mvnw package
+./mvnw install
 ```
-Zbudowany projekt znajduje się w katalogu `target`.
+UWAGA:
+Pierwsza instalacja będzie ściągać zależności z internetu. 
+Zależności są tylko do podprojektu `gui`. Podprojekt `machine` 
+nie korzysta z żadnych zewnętrznych bibliotek.
+
+Zbudowane podprojekty znajdują się odpowiednio w katalogach:
+- `gui/target`.
+- `machine/target`.
 
 Aby zbudować projekt bez uruchamiania testów wystarczy dodać opcję `-DskipTests`.
 ```shell
 ./mvnw package -DskipTests
 ```
-
 ## Uruchomienie Projektu
 
 ### Uruchomienie w trybie help
@@ -28,7 +44,7 @@ Aby zbudować projekt bez uruchamiania testów wystarczy dodać opcję `-DskipTe
 Aby wyświetlić pomoc, zbudowany projekt uruchamiamy, 
 wpisując w konsoli, w katalogu głównym projektu:
 ```shell
-./target/turing-machine -h
+./machine/target/turing-machine -h
 ```
 
 Powinniśmy zobaczyć następujący output:
@@ -44,12 +60,29 @@ Options:
 ### Uruchomienie ze scieżką do pliku
 
 Przykładowy plik wejściowy `input.txt` znajduje się 
-w katalogu `src/test/resources` wewnątrz projektu.
+w katalogu `machine/src/test/resources` wewnątrz projektu.
 
 Aby uruchomić zbudowany projekt z przykładowym plikiem wejściowym,
 w katalogu głównym projektu, wpisujemy w konsoli:
 ```shell
-./target/turing-machine ./src/test/resources/input.txt
+./machine/target/turing-machine ./machine/src/test/resources/input.txt
 ```
 Wynik działania programu znajduje się w pliku `out.log` w katalogu, w którym 
 uruchomiliśmy program (o ile nie podaliśmy innej ścieżki w opcjach uruchomienia programu)
+
+### Uruchomienie w trybie GUI
+
+Aby uruchomić projekt wtrybie GUI, wpisujemy w konsoli, w katalogu głównym projektu:
+
+```shell
+./gui/target/turing-machine-gui
+```
+
+Lub robimy duble-click myszką na pliku `./gui/target/turing-machine-gui.cmd`.
+
+UWAGA:
+Ze względu na bug w bibliotece do rysowania grafów GraphViz,
+możliwe jest uruchomienie jednej instancji programu w trybie GUI. 
+Dodatkowo ta biblioteka używa prehistorycznej Javy sprzed czasów 
+modułów i stąd mogą pojawić się warningi w stylu: 
+`WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module`.

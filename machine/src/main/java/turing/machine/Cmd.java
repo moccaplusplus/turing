@@ -1,8 +1,4 @@
-package turing.cmd;
-
-import turing.machine.Log;
-import turing.machine.Machine;
-import turing.machine.Settings;
+package turing.machine;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,6 +11,7 @@ import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static turing.machine.Msg.msg;
 
 public record Cmd(
         Settings settings,
@@ -28,7 +25,7 @@ public record Cmd(
         try (var cmd = fromArgs(args)) {
             cmd.run();
         } catch (Exception e) {
-            err.printf("%s: %s%n", e.getClass().getSimpleName(), e.getMessage());
+            err.println(msg(e));
             if (e instanceof InstantiationException) {
                 usage();
             }
@@ -107,13 +104,17 @@ public record Cmd(
                 break;
             }
             iteration++;
-            if (iteration <= REPORT_ITERATIONS_UNTIL /*|| iteration % 1000 == 0 */) {
+            if (iteration <= REPORT_ITERATIONS_UNTIL) {
                 log.iteration(iteration, transition, machine);
+            } else if (iteration == REPORT_ITERATIONS_UNTIL + 1) {
+                close();
             }
         }
 
         long time = System.currentTimeMillis() - start;
-        log.result(machine, settings.word(), iteration, time);
+        if (iteration <= REPORT_ITERATIONS_UNTIL) {
+            log.result(machine, settings.word(), iteration, time);
+        }
     }
 
     @Override

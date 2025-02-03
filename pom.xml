@@ -5,33 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>turing</groupId>
-    <artifactId>turing-machine</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>turing</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <resources>
-            <resource>
-                <filtering>true</filtering>
-                <directory>${project.basedir}/src/main/script</directory>
-                <targetPath>${project.build.directory}</targetPath>
-            </resource>
-        </resources>
-    </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.11.4</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
+    <modules>
+        <module>machine</module>
+        <module>gui</module>
+    </modules>
 </project>

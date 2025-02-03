@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<fx:root hgap="10" maxWidth="800" minWidth="450" type="javafx.scene.layout.GridPane" vgap="5"
+         xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
+
+    <columnConstraints>
+        <ColumnConstraints percentWidth="30"/>
+        <ColumnConstraints percentWidth="70"/>
+    </columnConstraints>
+
+    <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0">
+        <padding>
+            <Insets bottom="3"/>
+        </padding>
+    </Label>
+
+    <Label text="Band Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+    <TextField fx:id="bandAlphabetField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="1"/>
+
+    <Label text="Input Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+    <TextField fx:id="inputAlphabetField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="2"/>
+
+    <Label text="Word" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+    <TextField fx:id="wordField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="3"/>
+
+    <Label text="States" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+    <TextField fx:id="statesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="4"/>
+
+    <Label text="Start State" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+    <TextField fx:id="startStateField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="5"/>
+
+    <Label text="Final states" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+    <TextField fx:id="finalStatesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="6"/>
+
+    <Label text="Transitions" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+    <TableView fx:id="transitionsTable" focusTraversable="false" GridPane.columnIndex="1" GridPane.rowIndex="7"
+               maxHeight="100"/>
+</fx:root>

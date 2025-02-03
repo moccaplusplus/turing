@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -37,7 +38,7 @@ public record Settings(
         }
     }
 
-    public static Settings read(BufferedReader reader) throws IOException {
+    private static Settings read(BufferedReader reader) throws IOException {
         expectHeader(reader.readLine(), "alfabet tasmowy:");
         var bandAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
 
@@ -129,12 +130,20 @@ public record Settings(
 
     private void validateTransitions() {
         try {
+            var uniqueMap = new HashMap<String, Set<Character>>();
             for (var transition : transitions()) {
                 validateCharacter(bandAlphabet(), transition.readChar());
                 validateCharacter(bandAlphabet(), transition.writeChar());
                 validateState(states(), transition.fromState());
                 validateState(states(), transition.toState());
                 validateDirection(transition.moveDir());
+                var unique = uniqueMap.computeIfAbsent(transition.fromState(), key -> new HashSet<>())
+                        .add(transition.readChar());
+                if (!unique) {
+                    throw new IllegalStateException(
+                            format("Non deterministic. Multiple transitions from \"%s\" reading \"%s\"",
+                                    transition.fromState(), transition.readChar()));
+                }
             }
         } catch (Exception e) {
             throw new IllegalStateException("Invalid transition", e);

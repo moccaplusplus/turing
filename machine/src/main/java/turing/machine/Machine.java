@@ -3,6 +3,7 @@ package turing.machine;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
@@ -35,6 +36,10 @@ public class Machine {
             state = transition.toState();
         }
         return transition;
+    }
+
+    public Stream<Transition> toTransitions() {
+        return transitions.values().stream().map(Map::values).flatMap(Collection::stream);
     }
 
     public boolean isInFinalState() {
