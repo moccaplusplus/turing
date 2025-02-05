@@ -35,8 +35,23 @@
     <Label text="Input File Charset" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
     <TextField fx:id="charsetField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-    <BorderPane GridPane.columnIndex="1" GridPane.rowIndex="2">
+    <ButtonBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+        <padding>
+            <Insets bottom="5"/>
+        </padding>
+        <buttons>
+            <Button fx:id="loadButton" prefWidth="120" text="Load Settings"/>
+        </buttons>
+    </ButtonBar>
+
+    <Separator GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+
+    <SettingsView fx:id="settingsView" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+
+    <Separator GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+
+    <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+    <BorderPane GridPane.columnIndex="1" GridPane.rowIndex="6">
         <center>
             <TextField fx:id="outDirField" editable="false" focusTraversable="false"/>
         </center>
@@ -45,24 +60,8 @@
         </right>
     </BorderPane>
 
-    <Label text="Output File Name" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-    <TextField fx:id="outFileNameField" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-
-    <Label text="GUI Delay Millis" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-    <TextField fx:id="delayField" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-
-    <ButtonBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5">
-        <padding>
-            <Insets top="3" bottom="8"/>
-        </padding>
-        <buttons>
-            <Button fx:id="loadButton" prefWidth="120" text="Load Settings"/>
-        </buttons>
-    </ButtonBar>
-
-    <Separator GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="6" />
-
-    <SettingsView fx:id="settingsView" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+    <Label text="GUI Delay Millis" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+    <TextField fx:id="delayField" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 
     <ButtonBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="8">
         <padding>

@@ -9,17 +9,19 @@ import turing.machine.Log;
 import turing.machine.Machine;
 import turing.machine.Settings;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static turing.gui.Gui.initComponent;
-import static turing.gui.Gui.runOnFxApplicationThread;
+import static turing.gui.Gui.runInBackgroundThread;
+import static turing.gui.Gui.runInFxApplicationThread;
+import static turing.machine.Cmd.REPORT_ITERATIONS_UNTIL;
 import static turing.machine.Msg.msg;
 
 public class MainScreen extends SplitPane {
-    private static final int REPORT_ITERATIONS_UNTIL = 5000;
     private static final String LAYOUT = "main_screen.fxml";
 
     private final Object syncLock = new Object();
@@ -38,24 +40,25 @@ public class MainScreen extends SplitPane {
 
     public MainScreen() {
         initComponent(this, LAYOUT);
-        console.setFont(Font.font("Courier New", FontWeight.THIN, 13));
-        settingsWidget.setExecuteListener(e -> execute(e.getSettings(), e.getOutPath(), e.getDelayMillis()));
+        console.setStyle("-fx-font-size: 12; -fx-font-family: monospace;");
+        settingsWidget.setExecuteListener(e -> execute(e.getSettings(),
+                e.getOutPath(), e.getDelayMillis()));
         settingsWidget.setOnSettingsListener(this::onSettings);
     }
 
     private void onSettings(Settings settings, Exception error) {
-        new Thread(() -> {
+        runInBackgroundThread(() -> {
             bandWidget.clear();
             clearConsole();
             if (settings != null) {
-                graphWidget.draw(settings);
+                graphWidget.init(settings.transitions());
                 writeConsole(msg(settings));
             }
             if (error != null) {
                 graphWidget.clear();
                 writeConsole(msg(error));
             }
-        }).start();
+        });
     }
 
     @SuppressWarnings("BusyWait")
@@ -63,7 +66,7 @@ public class MainScreen extends SplitPane {
         settingsWidget.preventExecution(true);
         clearConsole();
 
-        new Thread(() -> {
+        runInBackgroundThread(() -> {
             try (var log = new Log(logOutputWriter(Files.newBufferedWriter(outPath)))) {
                 log.settings(settings);
 
@@ -74,21 +77,19 @@ public class MainScreen extends SplitPane {
 
                 log.initialized(machine);
                 bandWidget.preview(machine.band());
-                graphWidget.draw(settings, machine.state());
+                graphWidget.select(machine.state());
+                if (delay > 0) {
+                    Thread.sleep(delay);
+                }
 
                 int iteration = 0;
                 while (!machine.isInFinalState()) {
-                    if (delay > 0) {
-                        Thread.sleep(delay);
-                    }
-
                     var transition = machine.proceed();
                     if (transition == null) {
                         break;
                     }
 
-                    graphWidget.draw(settings, transition);
-
+                    graphWidget.select(transition);
                     if (delay > 0) {
                         Thread.sleep(delay);
                     }
@@ -101,7 +102,10 @@ public class MainScreen extends SplitPane {
                     }
 
                     bandWidget.preview(machine.band());
-                    graphWidget.draw(settings, machine.state());
+                    graphWidget.select(machine.state());
+                    if (delay > 0) {
+                        Thread.sleep(delay);
+                    }
                 }
 
                 long time = System.currentTimeMillis() - start;
@@ -109,15 +113,15 @@ public class MainScreen extends SplitPane {
                     log.result(machine, settings.word(), iteration, time);
                 }
             } catch (Exception e) {
-                runOnFxApplicationThread(() -> writeConsole(msg(e)));
+                writeConsole(msg(e));
             } finally {
-                runOnFxApplicationThread(() -> settingsWidget.preventExecution(false));
+                runInFxApplicationThread(() -> settingsWidget.preventExecution(false));
             }
-        }).start();
+        });
     }
 
     private void writeConsole(String text) {
-        runOnFxApplicationThread(() -> {
+        runInFxApplicationThread(() -> {
             synchronized (syncLock) {
                 console.appendText(text);
             }
@@ -125,7 +129,7 @@ public class MainScreen extends SplitPane {
     }
 
     private void clearConsole() {
-        runOnFxApplicationThread(() -> {
+        runInFxApplicationThread(() -> {
             synchronized (syncLock) {
                 console.clear();
             }
@@ -135,7 +139,7 @@ public class MainScreen extends SplitPane {
     private Writer logOutputWriter(Writer fileWriter) {
         return new Writer() {
             @Override
-            public void write(char[] buf, int off, int len) throws IOException {
+            public void write(@Nonnull char[] buf, int off, int len) throws IOException {
                 writeConsole(new String(buf, off, len));
                 fileWriter.write(buf, off, len);
             }

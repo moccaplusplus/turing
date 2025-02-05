@@ -26,15 +26,19 @@ public record Settings(
         Set<String> finalStates,
         Set<Transition> transitions
 ) {
-    public static Settings read(Path path, Charset charset) throws IOException {
+    public static Settings read(Path path, Charset charset) {
         try (var reader = Files.newBufferedReader(path, charset)) {
             return read(reader);
+        } catch (Exception e) {
+            throw new IllegalStateException("Input parsing error", e);
         }
     }
 
-    public static Settings read(InputStream inputStream, Charset charset) throws IOException {
+    public static Settings read(InputStream inputStream, Charset charset) {
         try (var reader = new BufferedReader(new InputStreamReader(inputStream, charset))) {
             return read(reader);
+        } catch (Exception e) {
+            throw new IllegalStateException("Input parsing error", e);
         }
     }
 

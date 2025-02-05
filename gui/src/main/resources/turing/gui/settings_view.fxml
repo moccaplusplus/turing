@@ -14,37 +14,31 @@
         <ColumnConstraints percentWidth="70"/>
     </columnConstraints>
 
-    <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0">
-        <padding>
-            <Insets bottom="3"/>
-        </padding>
-    </Label>
-
-    <Label text="Band Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+    <Label text="Band Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
     <TextField fx:id="bandAlphabetField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+               GridPane.rowIndex="0"/>
+
+    <Label text="Input Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+    <TextField fx:id="inputAlphabetField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
                GridPane.rowIndex="1"/>
 
-    <Label text="Input Alphabet" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-    <TextField fx:id="inputAlphabetField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+    <Label text="Word" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+    <TextField fx:id="wordField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
                GridPane.rowIndex="2"/>
 
-    <Label text="Word" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-    <TextField fx:id="wordField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+    <Label text="States" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+    <TextField fx:id="statesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
                GridPane.rowIndex="3"/>
 
-    <Label text="States" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-    <TextField fx:id="statesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+    <Label text="Start State" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+    <TextField fx:id="startStateField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
                GridPane.rowIndex="4"/>
 
-    <Label text="Start State" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-    <TextField fx:id="startStateField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
+    <Label text="Final states" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+    <TextField fx:id="finalStatesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
                GridPane.rowIndex="5"/>
 
-    <Label text="Final states" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-    <TextField fx:id="finalStatesField" editable="false" focusTraversable="false" GridPane.columnIndex="1"
-               GridPane.rowIndex="6"/>
-
-    <Label text="Transitions" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-    <TableView fx:id="transitionsTable" focusTraversable="false" GridPane.columnIndex="1" GridPane.rowIndex="7"
-               maxHeight="100"/>
+    <Label text="Transitions" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+    <TableView fx:id="transitionsTable" focusTraversable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
+               maxHeight="145"/>
 </fx:root>

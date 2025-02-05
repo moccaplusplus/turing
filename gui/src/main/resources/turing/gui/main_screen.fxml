@@ -6,11 +6,11 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import turing.gui.BandWidget?>
-<?import turing.gui.SettingsWidget?>
-<?import javafx.scene.layout.HBox?>
 <?import turing.gui.GraphWidget?>
+<?import turing.gui.SettingsWidget?>
 <fx:root dividerPositions="0.75" orientation="VERTICAL" prefHeight="768" prefWidth="1024"
          minHeight="600" minWidth="800"
          type="javafx.scene.control.SplitPane" xmlns="http://javafx.com/javafx/11.0.1"
@@ -31,7 +31,7 @@
                         <padding>
                             <Insets top="20" bottom="15"/>
                         </padding>
-                        <BandWidget fx:id="bandWidget" prefHeight="50" prefWidth="410" />
+                        <BandWidget fx:id="bandWidget" prefHeight="50" prefWidth="410"/>
                     </HBox>
                 </top>
                 <center>
@@ -39,6 +39,9 @@
                         <GraphWidget fx:id="graphWidget" fitWidth="470"/>
                     </HBox>
                 </center>
+                <bottom>
+
+                </bottom>
             </BorderPane>
         </ScrollPane>
     </SplitPane>

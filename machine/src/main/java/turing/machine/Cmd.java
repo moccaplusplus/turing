@@ -17,9 +17,9 @@ public record Cmd(
         Settings settings,
         Log log
 ) implements Runnable, AutoCloseable {
-    private static final int REPORT_ITERATIONS_UNTIL = 5000;
-    private static final Charset DEFAULT_CHARSET = UTF_8;
-    private static final String DEFAULT_OUT = "./out.log";
+    public static final int REPORT_ITERATIONS_UNTIL = 5000;
+    public static final Charset DEFAULT_CHARSET = UTF_8;
+    public static final String DEFAULT_OUT = "./out.log";
 
     public static void main(String... args) {
         try (var cmd = fromArgs(args)) {
@@ -57,7 +57,7 @@ public record Cmd(
     }
 
     private static void usage() {
-        out.println("Usage: turing-machine [-h] [-c <charset>] path/to/input.file");
+        out.println("Usage: turing-machine [-h] [-c <charset>] [-o path/to/out.log] path/to/input.file");
         out.printf("%3s %-22s %s%n", "", "path/to/input.file", "Path to input file with settings.");
         out.println("Options:");
         out.printf("%6s, %-18s %s%n", "-c", "--charset", format("Optional. Input file encoding. Default: %s.", DEFAULT_CHARSET));

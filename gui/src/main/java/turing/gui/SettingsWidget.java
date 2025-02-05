@@ -16,10 +16,11 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static turing.gui.Gui.initComponent;
 import static turing.gui.Gui.regexFormatter;
-import static turing.gui.Gui.runOnFxApplicationThread;
+import static turing.gui.Gui.runInBackgroundThread;
+import static turing.gui.Gui.runInFxApplicationThread;
+import static turing.machine.Cmd.DEFAULT_CHARSET;
 
 public class SettingsWidget extends GridPane {
     private static final String LAYOUT = "settings_widget.fxml";
@@ -38,9 +39,6 @@ public class SettingsWidget extends GridPane {
 
     @FXML
     private Button outDirButton;
-
-    @FXML
-    private TextField outFileNameField;
 
     @FXML
     private Button loadButton;
@@ -65,18 +63,18 @@ public class SettingsWidget extends GridPane {
     public SettingsWidget() {
         initComponent(this, LAYOUT);
         inputFileButton.setOnAction(e -> chooseInputFile());
-        outDirButton.setOnAction(e -> chooseOutDir());
-        outDirField.setText(getCwd().getAbsolutePath());
-        outFileNameField.setText("out.log");
+        charsetField.setText(DEFAULT_CHARSET.displayName());
+        charsetField.textProperty().addListener(e -> updateLoadButton());
         loadButton.setOnAction(e -> loadSettings());
         loadButton.setDisable(true);
-        executeButton.setOnAction(e -> execute());
-        executeButton.setDisable(true);
-        charsetField.setText(UTF_8.displayName());
-        charsetField.textProperty().addListener(e -> updateLoadButton());
+        settingsView.setDisable(true);
+        outDirButton.setOnAction(e -> chooseOutDir());
+        outDirField.setText(getCwd().toString());
         delayField.setTextFormatter(regexFormatter("^\\d*$"));
         delayField.setText("500");
-        settingsView.setDisable(true);
+        delayField.textProperty().addListener(e -> updateExecuteButton());
+        executeButton.setOnAction(e -> execute());
+        executeButton.setDisable(true);
     }
 
     public void preventExecution(boolean preventExecution) {
@@ -90,10 +88,7 @@ public class SettingsWidget extends GridPane {
     }
 
     public Path getOutPath() {
-        if (outDirField.getText().isBlank() || outFileNameField.getText().isBlank()) {
-            return null;
-        }
-        return Path.of(outDirField.getText(), outFileNameField.getText());
+        return Path.of(outDirField.getText());
     }
 
     public long getDelayMillis() {
@@ -121,11 +116,11 @@ public class SettingsWidget extends GridPane {
         loadButton.setDisable(true);
         var inputFile = inputFileField.getText();
         var charset = charsetField.getText();
-        new Thread(() -> {
+        runInBackgroundThread(() -> {
             try {
                 var settings = Settings.read(Path.of(inputFile), Charset.forName(charset));
                 settings.validate();
-                runOnFxApplicationThread(() -> {
+                runInFxApplicationThread(() -> {
                     settingsView.setSettings(settings);
                     this.settings = settings;
                     updateExecuteButton();
@@ -134,8 +129,8 @@ public class SettingsWidget extends GridPane {
                     }
                 });
             } catch (Exception e) {
-                runOnFxApplicationThread(() -> {
-                    settingsView.setError(e);
+                runInFxApplicationThread(() -> {
+                    settingsView.clear();
                     this.settings = null;
                     updateExecuteButton();
                     if (onSettingsListener != null) {
@@ -143,10 +138,9 @@ public class SettingsWidget extends GridPane {
                     }
                 });
             } finally {
-                runOnFxApplicationThread(() -> loadButton.setDisable(false));
+                runInFxApplicationThread(() -> loadButton.setDisable(false));
             }
-        }).start();
-
+        });
     }
 
     private void chooseInputFile() {
@@ -180,10 +174,10 @@ public class SettingsWidget extends GridPane {
     private File getDir(String path) {
         return Optional.of(path)
                 .map(File::new).map(File::getParentFile).filter(File::exists).filter(File::isDirectory)
-                .orElseGet(SettingsWidget::getCwd);
+                .orElseGet(() -> getCwd().toFile());
     }
 
-    private static File getCwd() {
-        return Paths.get(".").toAbsolutePath().normalize().toFile();
+    private static Path getCwd() {
+        return Paths.get(".").toAbsolutePath().normalize();
     }
 }

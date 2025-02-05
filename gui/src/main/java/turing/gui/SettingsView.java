@@ -2,7 +2,6 @@ package turing.gui;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -12,7 +11,6 @@ import turing.machine.Transition;
 
 import java.util.function.Function;
 
-import static java.lang.String.format;
 import static turing.gui.Gui.initComponent;
 
 public class SettingsView extends GridPane {
@@ -39,9 +37,6 @@ public class SettingsView extends GridPane {
     @FXML
     private TableView<Transition> transitionsTable;
 
-    @FXML
-    private Label statusLabel;
-
     public SettingsView() {
         initComponent(this, LAYOUT);
         var columns = transitionsTable.getColumns();
@@ -54,7 +49,6 @@ public class SettingsView extends GridPane {
     }
 
     public void setSettings(Settings settings) {
-        statusLabel.setText("Settings Valid");
         setDisable(false);
         bandAlphabetField.setText(settings.bandAlphabet().toString());
         inputAlphabetField.setText(settings.inputAlphabet().toString());
@@ -66,8 +60,7 @@ public class SettingsView extends GridPane {
         transitionsTable.getItems().addAll(settings.transitions());
     }
 
-    public void setError(Exception e) {
-        statusLabel.setText(format("%s: %s", e.getClass().getSimpleName(), e.getMessage()));
+    public void clear() {
         bandAlphabetField.clear();
         inputAlphabetField.clear();
         wordField.clear();

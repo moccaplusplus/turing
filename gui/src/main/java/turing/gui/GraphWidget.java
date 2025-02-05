@@ -1,69 +1,114 @@
 package turing.gui;
 
+import guru.nidi.graphviz.attribute.Color;
+import guru.nidi.graphviz.attribute.For;
 import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.Factory;
+import guru.nidi.graphviz.model.Graph;
+import guru.nidi.graphviz.model.Link;
+import guru.nidi.graphviz.model.MutableAttributed;
+import guru.nidi.graphviz.model.MutableNode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
-import turing.machine.Settings;
 import turing.machine.Transition;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
+import static guru.nidi.graphviz.attribute.GraphAttr.pad;
+import static guru.nidi.graphviz.attribute.GraphAttr.sizeMax;
+import static guru.nidi.graphviz.attribute.Rank.RankDir.LEFT_TO_RIGHT;
+import static guru.nidi.graphviz.attribute.Rank.dir;
+import static guru.nidi.graphviz.engine.Graphviz.fromGraph;
+import static guru.nidi.graphviz.model.Factory.graph;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
-import static turing.gui.Gui.runOnFxApplicationThread;
+import static turing.gui.Gui.runInBackgroundThread;
+import static turing.gui.Gui.runInFxApplicationThread;
 
 public class GraphWidget extends ImageView {
-    private static final String TRANSITION_FORMAT = "%s -> %s[label=\"(%s, %s, %s)\", color=\"%s\"];";
-    private static final String NODE_FORMAT = "%s [color=\"%s\"];";
-    private static final String GRAPH_FORMAT = "digraph { %s %s }";
-    private static final String NORMAL_COLOR = "black";
-    private static final String SELECTED_COLOR = "red";
+    private final Map<String, MutableNode> nodeMap = new HashMap<>();
+    private final Map<String, Map<Character, Link>> linkMap = new HashMap<>();
+    private Graph graph;
+    private MutableAttributed<?, For> selected;
 
-    public void draw(Settings settings) {
-        draw(settings.transitions(), settings.states(), null, null);
+    public void init(Collection<Transition> transitions) {
+        clear();
+        runInBackgroundThread(() -> {
+            initGraph(transitions);
+            draw();
+        });
     }
 
-    public void draw(Settings settings, String state) {
-        draw(settings.transitions(), settings.states(), state, null);
+    public void select(String state) {
+        runInBackgroundThread(() -> {
+            select(nodeMap.get(state).attrs());
+            draw();
+        });
     }
 
-    public void draw(Settings settings, Transition transition) {
-        draw(settings.transitions(), settings.states(), null, transition);
+    public void select(Transition transition) {
+        runInBackgroundThread(() -> {
+            select(linkMap.get(transition.fromState()).get(transition.readChar()).attrs());
+            draw();
+        });
     }
 
     public void clear() {
-        draw(emptyList(), emptyList(), null, null);
+        runInBackgroundThread(() -> {
+            nodeMap.clear();
+            linkMap.clear();
+            graph = null;
+            selected = null;
+            draw();
+        });
     }
 
-    private void draw(
-            Collection<Transition> transitions, Collection<String> states, String state, Transition transition) {
-        var nodes = states.stream()
-                .map(s -> format(NODE_FORMAT, s, Objects.equals(state, s) ? SELECTED_COLOR : NORMAL_COLOR))
-                .collect(joining());
-        var edges = transitions.stream()
-                .map(t -> format(TRANSITION_FORMAT,
-                        t.fromState(), t.toState(), t.readChar(), t.writeChar(), t.moveDir(),
-                        Objects.equals(transition, t) ? SELECTED_COLOR : NORMAL_COLOR))
-                .collect(joining());
-        var image = toImage(format(GRAPH_FORMAT, nodes, edges), (int) getFitWidth());
-        runOnFxApplicationThread(() -> setImage(image));
+    @SuppressWarnings("unchecked")
+    private void select(MutableAttributed<?, ? extends For> candidate) {
+        if (selected != null) {
+            selected.add(Color.BLACK);
+            selected = null;
+        }
+        if (candidate != null) {
+            selected = (MutableAttributed<?, For>) candidate;
+            selected.add(Color.RED);
+        }
     }
 
-    private static Image toImage(String dot, int size) {
-        var img = Graphviz.fromString(dot)
-                .width(size).height(size)
-                .render(Format.SVG)
-                .toImage();
-        return convertToFxImage(img);
+    private void initGraph(Collection<Transition> transitions) {
+        for (var t : transitions) {
+            var fromNode = nodeMap.computeIfAbsent(t.fromState(), Factory::mutNode);
+            var toNode = nodeMap.computeIfAbsent(t.toState(), Factory::mutNode);
+            var link = Link.to(toNode);
+            link.attrs().add("label", edgeLabel(t));
+            fromNode.addLink(link);
+            linkMap.computeIfAbsent(t.fromState(), k -> new HashMap<>()).put(
+                    t.readChar(), fromNode.links().getLast());
+        }
+        graph = graph().directed()
+                .graphAttr().with(pad(0.1), dir(LEFT_TO_RIGHT), sizeMax((int) getFitWidth()))
+                .with(new ArrayList<>(nodeMap.values()));
+    }
+
+    private void draw() {
+        var image = graph == null ? null : toImage(graph, (int) getFitWidth());
+        runInFxApplicationThread(() -> setImage(image));
+    }
+
+    private static String edgeLabel(Transition t) {
+        return format("(%s, %s, %s)", t.readChar(), t.writeChar(), t.moveDir());
+    }
+
+    private static Image toImage(Graph graph, int size) {
+        return convertToFxImage(fromGraph(graph).width(size).render(Format.PNG).toImage());
     }
 
     private static Image convertToFxImage(BufferedImage bImg) {

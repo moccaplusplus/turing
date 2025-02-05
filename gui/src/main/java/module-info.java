@@ -5,6 +5,8 @@ module turing.gui {
     requires javafx.fxml;
     requires guru.nidi.graphviz;
     requires turing.machine;
+    requires svgSalamander;
+    requires jsr305;
     opens turing.gui to javafx.fxml;
     exports turing.gui;
 }
