@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -40,5 +39,5 @@
 
     <Label text="Transitions" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
     <TableView fx:id="transitionsTable" focusTraversable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
-               maxHeight="145"/>
+               maxHeight="140"/>
 </fx:root>

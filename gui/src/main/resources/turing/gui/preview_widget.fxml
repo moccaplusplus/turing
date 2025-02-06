@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import turing.gui.BandWidget?>
+<?import turing.gui.GraphWidget?>
+<fx:root type="javafx.scene.layout.BorderPane" xmlns="http://javafx.com/javafx/11.0.1"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <top>
+        <HBox alignment="CENTER">
+            <padding>
+                <Insets top="20" bottom="15"/>
+            </padding>
+            <BandWidget fx:id="bandWidget" cellHeight="50" prefWidth="410"/>
+        </HBox>
+    </top>
+    <center>
+        <VBox alignment="CENTER">
+            <GraphWidget fx:id="graphWidget" fitWidth="470"
+                         style="-fx-border-color: lightgray; -fx-border-width: 1; -fx-border-style: solid;"/>
+        </VBox>
+    </center>
+    <bottom>
+
+    </bottom>
+</fx:root>

@@ -3,8 +3,6 @@ package turing.gui;
 import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import turing.machine.Log;
 import turing.machine.Machine;
 import turing.machine.Settings;
@@ -18,6 +16,7 @@ import java.nio.file.Path;
 import static turing.gui.Gui.initComponent;
 import static turing.gui.Gui.runInBackgroundThread;
 import static turing.gui.Gui.runInFxApplicationThread;
+import static turing.machine.Cmd.DEFAULT_OUT;
 import static turing.machine.Cmd.REPORT_ITERATIONS_UNTIL;
 import static turing.machine.Msg.msg;
 
@@ -30,17 +29,13 @@ public class MainScreen extends SplitPane {
     private SettingsWidget settingsWidget;
 
     @FXML
-    private BandWidget bandWidget;
-
-    @FXML
-    private GraphWidget graphWidget;
+    private PreviewWidget previewWidget;
 
     @FXML
     private TextArea console;
 
     public MainScreen() {
         initComponent(this, LAYOUT);
-        console.setStyle("-fx-font-size: 12; -fx-font-family: monospace;");
         settingsWidget.setExecuteListener(e -> execute(e.getSettings(),
                 e.getOutPath(), e.getDelayMillis()));
         settingsWidget.setOnSettingsListener(this::onSettings);
@@ -48,14 +43,13 @@ public class MainScreen extends SplitPane {
 
     private void onSettings(Settings settings, Exception error) {
         runInBackgroundThread(() -> {
-            bandWidget.clear();
             clearConsole();
             if (settings != null) {
-                graphWidget.init(settings.transitions());
+                previewWidget.init(settings);
                 writeConsole(msg(settings));
             }
             if (error != null) {
-                graphWidget.clear();
+                previewWidget.clear();
                 writeConsole(msg(error));
             }
         });
@@ -67,7 +61,7 @@ public class MainScreen extends SplitPane {
         clearConsole();
 
         runInBackgroundThread(() -> {
-            try (var log = new Log(logOutputWriter(Files.newBufferedWriter(outPath)))) {
+            try (var log = new Log(logOutputWriter(Files.newBufferedWriter(outPath.resolve(DEFAULT_OUT))))) {
                 log.settings(settings);
 
                 long start = System.currentTimeMillis();
@@ -76,8 +70,7 @@ public class MainScreen extends SplitPane {
                 machine.init(settings.word());
 
                 log.initialized(machine);
-                bandWidget.preview(machine.band());
-                graphWidget.select(machine.state());
+                previewWidget.update(machine);
                 if (delay > 0) {
                     Thread.sleep(delay);
                 }
@@ -89,7 +82,7 @@ public class MainScreen extends SplitPane {
                         break;
                     }
 
-                    graphWidget.select(transition);
+                    previewWidget.update(transition);
                     if (delay > 0) {
                         Thread.sleep(delay);
                     }
@@ -101,8 +94,7 @@ public class MainScreen extends SplitPane {
                         log.close();
                     }
 
-                    bandWidget.preview(machine.band());
-                    graphWidget.select(machine.state());
+                    previewWidget.update(machine);
                     if (delay > 0) {
                         Thread.sleep(delay);
                     }
@@ -131,7 +123,7 @@ public class MainScreen extends SplitPane {
     private void clearConsole() {
         runInFxApplicationThread(() -> {
             synchronized (syncLock) {
-                console.clear();
+//                console.clear();
             }
         });
     }

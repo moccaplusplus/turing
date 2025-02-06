@@ -63,6 +63,7 @@ public class SettingsWidget extends GridPane {
     public SettingsWidget() {
         initComponent(this, LAYOUT);
         inputFileButton.setOnAction(e -> chooseInputFile());
+        inputFileField.setText("C:\\Data\\zo\\turing\\machine\\src\\test\\resources\\input.txt");
         charsetField.setText(DEFAULT_CHARSET.displayName());
         charsetField.textProperty().addListener(e -> updateLoadButton());
         loadButton.setOnAction(e -> loadSettings());
