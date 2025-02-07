@@ -6,7 +6,6 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.VBox?>
 <?import turing.gui.PreviewWidget?>
 <?import turing.gui.SettingsWidget?>
 <fx:root dividerPositions="0.75" orientation="VERTICAL" prefHeight="768" prefWidth="1024"
@@ -15,25 +14,20 @@
          xmlns:fx="http://javafx.com/fxml/1">
     <SplitPane dividerPositions="0.5">
         <ScrollPane fitToWidth="true">
-            <VBox alignment="CENTER">
-                <SettingsWidget fx:id="settingsWidget"/>
-            </VBox>
+            <SettingsWidget fx:id="settingsWidget"/>
         </ScrollPane>
         <ScrollPane fitToHeight="true" fitToWidth="true">
-            <padding>
-                <Insets topRightBottomLeft="6"/>
-            </padding>
             <PreviewWidget fx:id="previewWidget"/>
         </ScrollPane>
     </SplitPane>
     <BorderPane>
         <padding>
-            <Insets topRightBottomLeft="6"/>
+            <Insets topRightBottomLeft="5"/>
         </padding>
         <top>
             <Label text="Output">
                 <padding>
-                    <Insets left="3" bottom="3"/>
+                    <Insets left="2" bottom="3"/>
                 </padding>
             </Label>
         </top>

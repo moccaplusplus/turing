@@ -37,6 +37,8 @@ public class SettingsView extends GridPane {
     @FXML
     private TableView<Transition> transitionsTable;
 
+    private Settings settings;
+
     public SettingsView() {
         initComponent(this, LAYOUT);
         var columns = transitionsTable.getColumns();
@@ -48,8 +50,12 @@ public class SettingsView extends GridPane {
         transitionsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     }
 
+    public Settings getSettings() {
+        return settings;
+    }
+
     public void setSettings(Settings settings) {
-        setDisable(false);
+        this.settings = settings;
         bandAlphabetField.setText(settings.bandAlphabet().toString());
         inputAlphabetField.setText(settings.inputAlphabet().toString());
         wordField.setText(settings.word());
@@ -58,9 +64,11 @@ public class SettingsView extends GridPane {
         finalStatesField.setText(settings.finalStates().toString());
         transitionsTable.getItems().clear();
         transitionsTable.getItems().addAll(settings.transitions());
+        setDisable(false);
     }
 
     public void clear() {
+        setDisable(true);
         bandAlphabetField.clear();
         inputAlphabetField.clear();
         wordField.clear();
@@ -68,7 +76,7 @@ public class SettingsView extends GridPane {
         startStateField.clear();
         finalStatesField.clear();
         transitionsTable.getItems().clear();
-        setDisable(true);
+        settings = null;
     }
 
     private static TableColumn<Transition, ?> simpleColumn(

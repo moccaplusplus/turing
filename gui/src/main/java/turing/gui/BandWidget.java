@@ -13,10 +13,7 @@ import turing.machine.Band;
 
 import java.util.stream.IntStream;
 
-import static java.lang.String.format;
 import static turing.gui.Gui.initComponent;
-import static turing.gui.Gui.runInBackgroundThread;
-import static turing.gui.Gui.runInFxApplicationThread;
 
 public class BandWidget extends BorderPane {
     private static final String LAYOUT = "band_widget.fxml";
@@ -32,27 +29,16 @@ public class BandWidget extends BorderPane {
     @FXML
     private HBox numBox;
 
-    @FXML
-    private Label statusLabel;
-
     private int selected = -1;
 
     public BandWidget(@NamedArg("prefWidth") double prefWidth, @NamedArg("cellHeight") double cellHeight) {
         initComponent(this, LAYOUT);
         setFocusTraversable(false);
         setMouseTransparent(true);
+
         var cellWidth = prefWidth / DISPLAY_COUNT;
-        cellBox.getChildren().addAll(IntStream.range(0, DISPLAY_COUNT)
-                .mapToObj(i -> {
-                    var label = new Label(EMPTY_CELL_TEXT);
-                    label.setAlignment(Pos.CENTER);
-                    label.setStyle("-fx-font-size: 16");
-                    label.setPrefWidth(cellWidth);
-                    label.setPrefHeight(cellHeight);
-                    label.setBackground(i % 2 == 0 ? BACKGROUND_EVEN : BACKGROUND_ODD);
-                    return label;
-                })
-                .toList());
+        setPrefWidth(prefWidth);
+        numBox.setPrefWidth(prefWidth);
         cellBox.setPrefWidth(prefWidth);
         cellBox.setPrefHeight(cellHeight);
         cellBox.setBorder(Border.stroke(Color.LIGHTGRAY));
@@ -68,37 +54,33 @@ public class BandWidget extends BorderPane {
                     return label;
                 })
                 .toList());
-        numBox.setPrefWidth(prefWidth);
 
-        statusLabel.setText("Machine Band Size: ");
+
+        cellBox.getChildren().addAll(IntStream.range(0, DISPLAY_COUNT)
+                .mapToObj(i -> {
+                    var label = new Label(EMPTY_CELL_TEXT);
+                    label.setAlignment(Pos.CENTER);
+                    label.setStyle("-fx-font-size: 16");
+                    label.setPrefWidth(cellWidth);
+                    label.setPrefHeight(cellHeight);
+                    label.setBackground(i % 2 == 0 ? BACKGROUND_EVEN : BACKGROUND_ODD);
+                    return label;
+                })
+                .toList());
         setPrefWidth(prefWidth);
     }
 
-    public void preview(Band band) {
-        preview(band.bandStr(), band.headPos());
+    public void preview(String band, int head) {
+        int start = Math.max(0, head - DISPLAY_COUNT / 2);
+        updateNums(start);
+        writeCells(band.substring(start, start + DISPLAY_COUNT));
+        selectCell(head + start);
     }
 
     public void clear() {
-        runInFxApplicationThread(() -> {
-            statusLabel.setText("Machine Band Size: ");
-            updateNums(0);
-            clearBand();
-            selectCell(-1);
-        });
-    }
-
-    private void preview(String band, int head) {
-        runInBackgroundThread(() -> {
-            int start = Math.max(0, head - DISPLAY_COUNT / 2);
-            var viewFrame = band.substring(start, start + DISPLAY_COUNT);
-            var headTransl = head + start;
-            runInFxApplicationThread(() -> {
-                statusLabel.setText(format("Machine Band Size: %d", band.length()));
-                updateNums(start);
-                writeCells(viewFrame);
-                selectCell(headTransl);
-            });
-        });
+        updateNums(0);
+        clearBand();
+        selectCell(-1);
     }
 
     private void selectCell(int index) {

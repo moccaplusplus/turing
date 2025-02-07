@@ -39,5 +39,5 @@
 
     <Label text="Transitions" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
     <TableView fx:id="transitionsTable" focusTraversable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
-               maxHeight="140"/>
+               maxHeight="135"/>
 </fx:root>

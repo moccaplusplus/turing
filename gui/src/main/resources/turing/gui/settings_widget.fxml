@@ -61,17 +61,20 @@
     <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
     <BorderPane GridPane.columnIndex="1" GridPane.rowIndex="6">
         <center>
-            <TextField fx:id="outDirField" editable="false" focusTraversable="false"/>
+            <TextField fx:id="outputDirField" editable="false" focusTraversable="false"/>
         </center>
         <right>
-            <Button fx:id="outDirButton" prefWidth="120" text="Choose Folder"/>
+            <Button fx:id="outputDirButton" prefWidth="120" text="Choose Folder"/>
         </right>
     </BorderPane>
 
-    <Label text="GUI Delay Millis" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-    <TextField fx:id="delayField" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+    <Label text="Output Filename" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+    <TextField fx:id="outputFilenameField" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 
-    <ButtonBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="8">
+    <Label text="GUI Delay Millis" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+    <TextField fx:id="delayField" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+
+    <ButtonBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="9">
         <padding>
             <Insets bottom="3"/>
         </padding>

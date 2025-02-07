@@ -1,7 +1,7 @@
 package turing.machine;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,17 +13,14 @@ import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static turing.machine.Msg.msg;
 
-public record Cmd(
-        Settings settings,
-        Log log
-) implements Runnable, AutoCloseable {
+public class Cmd {
     public static final int REPORT_ITERATIONS_UNTIL = 5000;
     public static final Charset DEFAULT_CHARSET = UTF_8;
-    public static final String DEFAULT_OUT = "./out.log";
+    public static final String DEFAULT_OUT = "out.log";
 
     public static void main(String... args) {
-        try (var cmd = fromArgs(args)) {
-            cmd.run();
+        try {
+            runWithArgs(args);
         } catch (Exception e) {
             err.println(msg(e));
             if (e instanceof InstantiationException) {
@@ -33,7 +30,16 @@ public record Cmd(
         }
     }
 
-    private static Cmd fromArgs(String... args) throws InstantiationException, IOException {
+    private static void usage() {
+        out.println("Usage: turing-machine [-h] [-c <charset>] [-o path/to/out.log] path/to/input.file");
+        out.printf("%3s %-22s %s%n", "", "path/to/input.file", "Path to input file with settings.");
+        out.println("Options:");
+        out.printf("%6s, %-18s %s%n", "-c", "--charset", format("Optional. Input file encoding. Default: %s.", DEFAULT_CHARSET));
+        out.printf("%6s, %-18s %s%n", "-o", "--out", format("Optional. Path to output file. Default: %s.", DEFAULT_OUT));
+        out.printf("%6s, %-18s %s%n", "-h", "--help", "Prints help.");
+    }
+
+    private static void runWithArgs(String... args) throws InstantiationException, IOException {
         Charset charset = DEFAULT_CHARSET;
         String input = null;
         String output = DEFAULT_OUT;
@@ -51,44 +57,19 @@ public record Cmd(
         if (input == null) {
             throw new InstantiationException("Input path is null");
         }
-        var settings = Settings.read(Path.of(input), charset);
-        var log = new Log(logOutputStream(Files.newOutputStream(Path.of(output))));
-        return new Cmd(settings, log);
+        runWithParams(charset, Path.of(input), Path.of(output));
     }
 
-    private static void usage() {
-        out.println("Usage: turing-machine [-h] [-c <charset>] [-o path/to/out.log] path/to/input.file");
-        out.printf("%3s %-22s %s%n", "", "path/to/input.file", "Path to input file with settings.");
-        out.println("Options:");
-        out.printf("%6s, %-18s %s%n", "-c", "--charset", format("Optional. Input file encoding. Default: %s.", DEFAULT_CHARSET));
-        out.printf("%6s, %-18s %s%n", "-o", "--out", format("Optional. Path to output file. Default: %s.", DEFAULT_OUT));
-        out.printf("%6s, %-18s %s%n", "-h", "--help", "Prints help.");
-    }
-
-    private static OutputStream logOutputStream(OutputStream fileStream) {
-        return new OutputStream() {
-            @Override
-            public void write(int b) throws IOException {
-                out.write(b);
-                fileStream.write(b);
-            }
-
-            @Override
-            public void flush() throws IOException {
-                out.flush();
-                fileStream.flush();
-            }
-
-            @Override
-            public void close() throws IOException {
-                fileStream.close();
-            }
-        };
-    }
-
-    @Override
-    public void run() {
+    private static void runWithParams(Charset charset, Path input, Path output) throws IOException {
+        var settings = Settings.parse(input, charset);
         settings.validate();
+        try (var fileWriter = new PrintWriter(Files.newOutputStream(output))) {
+            run(settings, fileWriter);
+        }
+    }
+
+    private static void run(Settings settings, PrintWriter fileWriter) {
+        var log = new Log(out::println, fileWriter::println);
         log.settings(settings);
 
         long start = System.currentTimeMillis();
@@ -103,22 +84,17 @@ public record Cmd(
             if (transition == null) {
                 break;
             }
+
             iteration++;
-            if (iteration <= REPORT_ITERATIONS_UNTIL) {
-                log.iteration(iteration, transition, machine);
-            } else if (iteration == REPORT_ITERATIONS_UNTIL + 1) {
-                close();
+            log.iteration(iteration, transition, machine);
+
+            if (iteration == REPORT_ITERATIONS_UNTIL) {
+                log.appenders.clear();
+                fileWriter.close();
             }
         }
 
         long time = System.currentTimeMillis() - start;
-        if (iteration <= REPORT_ITERATIONS_UNTIL) {
-            log.result(machine, settings.word(), iteration, time);
-        }
-    }
-
-    @Override
-    public void close() {
-        log.close();
+        log.result(machine, settings.word(), iteration, time);
     }
 }

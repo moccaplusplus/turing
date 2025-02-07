@@ -1,5 +1,7 @@
 package turing.gui;
 
+import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.engine.GraphvizV8Engine;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,11 +11,19 @@ import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import java.io.PrintStream;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Gui extends Application {
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+    static {
+        var noop = new PrintStream(PrintStream.nullOutputStream());
+        System.setOut(noop);
+        System.setErr(noop);
+    }
 
     public static void main(String[] args) {
         launch();
@@ -46,13 +56,17 @@ public class Gui extends Application {
         }
     }
 
+    public static void scheduleInBackgroundThread(Runnable runnable, long delay) {
+        executor.schedule(runnable, delay, TimeUnit.MILLISECONDS);
+    }
+
     public static TextFormatter<?> regexFormatter(String regex) {
         return new TextFormatter<>(change -> change.getControlNewText().matches(regex) ? change : null);
     }
 
     @Override
     public void start(Stage stage) {
-        getParameters().getRaw();
+        Graphviz.useEngine(new GraphvizV8Engine());
         var mainScreen = new MainScreen();
         var scene = new Scene(mainScreen);
         stage.setScene(scene);
@@ -63,5 +77,6 @@ public class Gui extends Application {
     @Override
     public void stop() {
         executor.close();
+        Graphviz.releaseEngine();
     }
 }

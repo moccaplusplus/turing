@@ -1,48 +1,55 @@
 package turing.machine;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 import static turing.machine.Msg.indent;
 import static turing.machine.Msg.msg;
 
-public class Log extends PrintWriter {
-    public Log(Writer out) {
-        super(out);
-    }
+public class Log {
+    public final List<Consumer<String>> appenders;
 
-    public Log(OutputStream out) {
-        super(out);
+    @SafeVarargs
+    public Log(Consumer<String>... appenders) {
+        this.appenders = new ArrayList<>(List.of(appenders));
     }
 
     public void settings(Settings settings) {
-        println("Machine Settings:");
-        println(indent(msg(settings)));
+        log("Machine Settings:");
+        log(indent(msg(settings)));
     }
 
     public void initialized(Machine machine) {
-        println("Machine Initialized:");
-        println(indent(msg(machine)));
+        log("Machine Initialized:");
+        log(indent(msg(machine)));
     }
 
     public void iteration(int iteration, Transition transition, Machine machine) {
-        println("Iteration: " + iteration);
-        println(indent("Applied Transition:"));
-        println(indent(indent(msg(transition))));
-        println(indent("Machine After Transition:"));
-        println(indent(indent(msg(machine))));
+        log("Iteration: " + iteration);
+        log(indent("Applied Transition:"));
+        log(indent(indent(msg(transition))));
+        log(indent("Machine After Transition:"));
+        log(indent(indent(msg(machine))));
     }
 
     public void result(Machine machine, String inputWord, int iterations, long time) {
         if (machine.isInFinalState()) {
-            println("Machine Finished in Accepting State:");
-            println(indent("Computed word: " + machine.band().currentWord()));
+            log("Machine Finished in Accepting State:");
+            log(indent("Computed word: " + machine.band().currentWord()));
         } else {
-            println("Machine Finished in Non-Accepting State:");
+            log("Machine Finished in Non-Accepting State:");
         }
-        println(indent("Input word: " + inputWord));
-        println(indent("Iterations: " + iterations));
-        println(indent("Time: " + time + "ms"));
+        log(indent("Input word: " + inputWord));
+        log(indent("Iterations: " + iterations));
+        log(indent("Time: " + time + "ms"));
+    }
+
+    public void log(String msg) {
+        for (var line : msg.split(System.lineSeparator())) {
+            for (var appender : appenders) {
+                appender.accept(line);
+            }
+        }
     }
 }

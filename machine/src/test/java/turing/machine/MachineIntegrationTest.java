@@ -13,7 +13,7 @@ class MachineIntegrationTest {
     @Test
     void shouldRunSimpleMachineFromInputFile() throws IOException {
         // given
-        var settings = Settings.read(MachineIntegrationTest.class.getResourceAsStream("/input.txt"), UTF_8);
+        var settings = Settings.parse(getClass().getResourceAsStream("/input.txt"), UTF_8);
         var machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
 
         // when

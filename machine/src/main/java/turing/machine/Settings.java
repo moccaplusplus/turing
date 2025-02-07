@@ -16,6 +16,7 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.lang.System.err;
 import static java.util.stream.Collectors.toSet;
+import static turing.machine.Msg.indent;
 
 public record Settings(
         Set<Character> bandAlphabet,
@@ -26,23 +27,23 @@ public record Settings(
         Set<String> finalStates,
         Set<Transition> transitions
 ) {
-    public static Settings read(Path path, Charset charset) {
+    public static Settings parse(Path path, Charset charset) {
         try (var reader = Files.newBufferedReader(path, charset)) {
-            return read(reader);
+            return parse(reader);
         } catch (Exception e) {
             throw new IllegalStateException("Input parsing error", e);
         }
     }
 
-    public static Settings read(InputStream inputStream, Charset charset) {
+    public static Settings parse(InputStream inputStream, Charset charset) {
         try (var reader = new BufferedReader(new InputStreamReader(inputStream, charset))) {
-            return read(reader);
+            return parse(reader);
         } catch (Exception e) {
             throw new IllegalStateException("Input parsing error", e);
         }
     }
 
-    private static Settings read(BufferedReader reader) throws IOException {
+    private static Settings parse(BufferedReader reader) throws IOException {
         expectHeader(reader.readLine(), "alfabet tasmowy:");
         var bandAlphabet = reader.readLine().chars().mapToObj(i -> (char) i).collect(toSet());
 
@@ -70,9 +71,9 @@ public record Settings(
         return new Settings(bandAlphabet, inputAlphabet, word, states, startState, finalStates, transitions);
     }
 
-    private static <T> void expectHeader(T actual, T expected) {
+    private static void expectHeader(String actual, String expected) {
         if (!Objects.equals(expected, actual)) {
-            err.printf("Expected header to be \"%s\" but was \"%s\"%n", expected, actual);
+            err.printf("Expected header to be: %n%s%nbut was: %n%s%n", indent(expected), indent(actual));
         }
     }
 

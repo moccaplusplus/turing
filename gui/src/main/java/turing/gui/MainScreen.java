@@ -7,16 +7,15 @@ import turing.machine.Log;
 import turing.machine.Machine;
 import turing.machine.Settings;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static turing.gui.Gui.initComponent;
 import static turing.gui.Gui.runInBackgroundThread;
 import static turing.gui.Gui.runInFxApplicationThread;
-import static turing.machine.Cmd.DEFAULT_OUT;
+import static turing.gui.Gui.scheduleInBackgroundThread;
 import static turing.machine.Cmd.REPORT_ITERATIONS_UNTIL;
 import static turing.machine.Msg.msg;
 
@@ -24,6 +23,7 @@ public class MainScreen extends SplitPane {
     private static final String LAYOUT = "main_screen.fxml";
 
     private final Object syncLock = new Object();
+    private final Log log;
 
     @FXML
     private SettingsWidget settingsWidget;
@@ -36,77 +36,124 @@ public class MainScreen extends SplitPane {
 
     public MainScreen() {
         initComponent(this, LAYOUT);
-        settingsWidget.setExecuteListener(e -> execute(e.getSettings(),
-                e.getOutPath(), e.getDelayMillis()));
-        settingsWidget.setOnSettingsListener(this::onSettings);
+        settingsWidget.setLoadListener(this::readSettings);
+        settingsWidget.setExecuteListener(this::execute);
+        previewWidget.setDisable(true);
+        log = new Log(this::writeConsole);
     }
 
-    private void onSettings(Settings settings, Exception error) {
+    private void readSettings() {
+        var inputFile = settingsWidget.getInputFile();
+        var charset = settingsWidget.getCharset();
+        previewWidget.setDisable(true);
+        settingsWidget.preventExecution(true);
+        clearConsole();
         runInBackgroundThread(() -> {
-            clearConsole();
-            if (settings != null) {
-                previewWidget.init(settings);
-                writeConsole(msg(settings));
-            }
-            if (error != null) {
-                previewWidget.clear();
-                writeConsole(msg(error));
+            try {
+                var settings = Settings.parse(Path.of(inputFile), Charset.forName(charset));
+                settings.validate();
+                log.settings(settings);
+                runInFxApplicationThread(() -> {
+                    settingsWidget.setSettings(settings);
+                    previewWidget.init(settings, () -> settingsWidget.preventExecution(false));
+                });
+            } catch (Exception e) {
+                runInFxApplicationThread(() -> {
+                    settingsWidget.setSettings(null);
+                    previewWidget.clear();
+                    settingsWidget.preventExecution(false);
+                });
+                writeConsole(msg(e));
             }
         });
     }
 
-    @SuppressWarnings("BusyWait")
-    private void execute(Settings settings, Path outPath, long delay) {
+    private void execute() {
+        var settings = settingsWidget.getSettings();
+        var delay = settingsWidget.getDelay();
+        var outputDir = settingsWidget.getOutputDir();
+        var outputFilename = settingsWidget.getOutputFilename();
+
         settingsWidget.preventExecution(true);
+        previewWidget.setDisable(false);
         clearConsole();
 
-        runInBackgroundThread(() -> {
-            try (var log = new Log(logOutputWriter(Files.newBufferedWriter(outPath.resolve(DEFAULT_OUT))))) {
-                log.settings(settings);
+        runInBackgroundThread(new Runnable() {
+            private PrintWriter fileWriter;
+            private Machine machine;
+            private int iteration = 0;
+            private long start;
 
-                long start = System.currentTimeMillis();
-
-                var machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
-                machine.init(settings.word());
-
-                log.initialized(machine);
-                previewWidget.update(machine);
-                if (delay > 0) {
-                    Thread.sleep(delay);
+            @Override
+            public void run() {
+                try {
+                    var outputPath = Path.of(outputDir).resolve(outputFilename);
+                    fileWriter = new PrintWriter(Files.newOutputStream(outputPath), true);
+                    log.appenders.add(fileWriter::println);
+                    log.settings(settings);
+                    start = System.currentTimeMillis();
+                    machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
+                    machine.init(settings.word());
+                    log.initialized(machine);
+                    runInFxApplicationThread(() -> previewWidget.update(iteration, machine));
+                    scheduleInBackgroundThread(safeWrap(this::applyTransition), delay);
+                } catch (Exception e) {
+                    doCatch(e);
                 }
+            }
 
-                int iteration = 0;
-                while (!machine.isInFinalState()) {
-                    var transition = machine.proceed();
-                    if (transition == null) {
-                        break;
-                    }
-
-                    previewWidget.update(transition);
-                    if (delay > 0) {
-                        Thread.sleep(delay);
-                    }
-
+            private void applyTransition() {
+                var transition = machine.proceed();
+                if (transition == null) {
+                    exitLoop();
+                } else {
                     iteration++;
-                    if (iteration <= REPORT_ITERATIONS_UNTIL) {
-                        log.iteration(iteration, transition, machine);
-                    } else if (iteration == REPORT_ITERATIONS_UNTIL + 1) {
-                        log.close();
-                    }
-
-                    previewWidget.update(machine);
-                    if (delay > 0) {
-                        Thread.sleep(delay);
-                    }
+                    log.iteration(iteration, transition, machine);
+                    runInFxApplicationThread(() -> previewWidget.update(transition));
+                    scheduleInBackgroundThread(safeWrap(this::showState), delay);
                 }
+            }
 
+            private void showState() {
+                if (iteration == REPORT_ITERATIONS_UNTIL) {
+                    log.appenders.clear();
+                    fileWriter.close();
+                }
+                runInFxApplicationThread(() -> previewWidget.update(iteration, machine));
+                if (machine.isInFinalState()) {
+                    exitLoop();
+                } else {
+                    scheduleInBackgroundThread(safeWrap(this::applyTransition), delay);
+                }
+            }
+
+            private void exitLoop() {
                 long time = System.currentTimeMillis() - start;
-                if (iteration <= REPORT_ITERATIONS_UNTIL) {
-                    log.result(machine, settings.word(), iteration, time);
-                }
-            } catch (Exception e) {
+                log.result(machine, settings.word(), iteration, time);
+                boolean accepted = machine.isInFinalState();
+                runInFxApplicationThread(() -> previewWidget.result(iteration, accepted));
+                doFinally();
+            }
+
+            private Runnable safeWrap(Runnable runnable) {
+                return () -> {
+                    try {
+                        runnable.run();
+                    } catch (Exception e) {
+                        doCatch(e);
+                    }
+                };
+            }
+
+            private void doCatch(Exception e) {
                 writeConsole(msg(e));
-            } finally {
+                doFinally();
+            }
+
+            private void doFinally() {
+                log.appenders.clear();
+                log.appenders.add(MainScreen.this::writeConsole);
+                fileWriter.close();
                 runInFxApplicationThread(() -> settingsWidget.preventExecution(false));
             }
         });
@@ -116,6 +163,8 @@ public class MainScreen extends SplitPane {
         runInFxApplicationThread(() -> {
             synchronized (syncLock) {
                 console.appendText(text);
+                console.appendText(System.lineSeparator());
+                console.setScrollTop(Double.MAX_VALUE);
             }
         });
     }
@@ -123,28 +172,9 @@ public class MainScreen extends SplitPane {
     private void clearConsole() {
         runInFxApplicationThread(() -> {
             synchronized (syncLock) {
-//                console.clear();
+                console.clear();
+                console.setScrollTop(0);
             }
         });
-    }
-
-    private Writer logOutputWriter(Writer fileWriter) {
-        return new Writer() {
-            @Override
-            public void write(@Nonnull char[] buf, int off, int len) throws IOException {
-                writeConsole(new String(buf, off, len));
-                fileWriter.write(buf, off, len);
-            }
-
-            @Override
-            public void flush() throws IOException {
-                fileWriter.flush();
-            }
-
-            @Override
-            public void close() throws IOException {
-                fileWriter.close();
-            }
-        };
     }
 }
