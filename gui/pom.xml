@@ -76,6 +76,21 @@
             <groupId>guru.nidi</groupId>
             <artifactId>graphviz-java</artifactId>
             <version>0.18.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>guru.nidi.com.eclipsesource.j2v8</groupId>
+                    <artifactId>j2v8_linux_x86_64</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>guru.nidi.com.eclipsesource.j2v8</groupId>
+                    <artifactId>j2v8_win32_x86_64</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.6</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -83,5 +98,4 @@
             <version>1.7.36</version>
         </dependency>
     </dependencies>
-
 </project>

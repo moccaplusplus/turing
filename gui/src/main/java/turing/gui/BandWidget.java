@@ -29,6 +29,9 @@ public class BandWidget extends BorderPane {
     @FXML
     private HBox numBox;
 
+    @FXML
+    private Label label;
+
     private int selected = -1;
 
     public BandWidget(@NamedArg("prefWidth") double prefWidth, @NamedArg("cellHeight") double cellHeight) {
@@ -75,12 +78,14 @@ public class BandWidget extends BorderPane {
         updateNums(start);
         writeCells(band.substring(start, start + DISPLAY_COUNT));
         selectCell(head + start);
+        label.setText("Band Size: " + band.length());
     }
 
     public void clear() {
         updateNums(0);
         clearBand();
         selectCell(-1);
+        label.setText("");
     }
 
     private void selectCell(int index) {

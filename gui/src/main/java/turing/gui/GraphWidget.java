@@ -114,7 +114,7 @@ public class GraphWidget extends ImageView {
                 .graphAttrs().add(pad(0.1), dir(LEFT_TO_RIGHT), sizeMax((int) getFitWidth()))
                 .add(mutNode("#")
                         .add(attr("shape", "point"), attr("label", ""))
-                        .addLink(Link.to(nodeMap.get(settings.startState())).with(attr("minlen", 0.1))))
+                        .addLink(Link.to(nodeMap.get(settings.startState())).with(attr("minlen", 0))))
                 .add(new ArrayList<>(nodeMap.values()));
         this.nodeMap = nodeMap;
         this.linkMap = linkMap;

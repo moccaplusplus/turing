@@ -1,7 +1,6 @@
 package turing.gui;
 
 import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.engine.GraphvizV8Engine;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -66,7 +65,7 @@ public class Gui extends Application {
 
     @Override
     public void start(Stage stage) {
-        Graphviz.useEngine(new GraphvizV8Engine());
+        Graphviz.useEngine(new VizHack());
         var mainScreen = new MainScreen();
         var scene = new Scene(mainScreen);
         stage.setScene(scene);

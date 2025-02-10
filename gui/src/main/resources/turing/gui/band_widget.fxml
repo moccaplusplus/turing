@@ -16,7 +16,7 @@
         <HBox fx:id="cellBox"/>
     </center>
     <bottom>
-        <Label fx:id="statusLabel">
+        <Label fx:id="label" style="-fx-font-size: 11">
             <padding>
                 <Insets top="4" left="2"/>
             </padding>
