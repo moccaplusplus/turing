@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<fx:root type="javafx.scene.layout.BorderPane" xmlns="http://javafx.com/javafx/11.0.1"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="5"/>
+    </padding>
+    <top>
+        <Label text="Output">
+            <padding>
+                <Insets left="2" bottom="3"/>
+            </padding>
+        </Label>
+    </top>
+    <center>
+        <TextArea fx:id="console" style="-fx-font-size: 12; -fx-font-family: monospace;" editable="false"
+                  wrapText="true" focusTraversable="false"/>
+    </center>
+</fx:root>

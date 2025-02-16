@@ -9,6 +9,7 @@ import turing.machine.Transition;
 
 import static java.lang.String.format;
 import static turing.gui.Gui.initComponent;
+import static turing.gui.Gui.runInFxApplicationThread;
 
 public class PreviewWidget extends BorderPane {
     private static final String LAYOUT = "preview_widget.fxml";
@@ -26,9 +27,9 @@ public class PreviewWidget extends BorderPane {
         initComponent(this, LAYOUT);
     }
 
-    public void init(Settings settings, Runnable callback) {
+    public void init(Settings settings) {
+        graphWidget.init(settings);
         bandWidget.clear();
-        graphWidget.init(settings, callback);
         statusLabel.setText("Settings Valid");
     }
 
@@ -37,13 +38,10 @@ public class PreviewWidget extends BorderPane {
         var state = machine.state();
         var bandStr = machine.band().bandStr();
         int headPos = machine.band().headPos();
+        var statusText = iteration == 0 ? "Machine Started" : "Iteration " + iteration;
         graphWidget.select(state);
         bandWidget.preview(bandStr, headPos);
-        if (iteration == 0) {
-            statusLabel.setText("Machine Started");
-        } else {
-            statusLabel.setText("Iteration " + iteration);
-        }
+        statusLabel.setText(statusText);
     }
 
     public void update(Transition transition) {
@@ -51,8 +49,9 @@ public class PreviewWidget extends BorderPane {
     }
 
     public void result(int iteration, boolean accepted) {
-        statusLabel.setText(format("Finished in %s State after %d iterations",
-                accepted ? "Accepting" : "Non-Accepting", iteration));
+        var statusText = format("Finished in %s State after %d iterations",
+                accepted ? "Accepting" : "Non-Accepting", iteration);
+        runInFxApplicationThread(() -> statusLabel.setText(statusText));
     }
 
     public void clear() {

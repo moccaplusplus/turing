@@ -16,7 +16,7 @@
         </HBox>
     </top>
     <center>
-        <GraphWidget fx:id="graphWidget" fitWidth="484"/>
+        <GraphWidget fx:id="graphWidget" maxWidth="480"/>
     </center>
     <bottom>
         <Label fx:id="statusLabel" style="-fx-font-size: 11"/>

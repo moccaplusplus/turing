@@ -79,10 +79,3 @@ Aby uruchomić projekt wtrybie GUI, wpisujemy w konsoli, w katalogu głównym pr
 ```
 
 Lub robimy duble-click myszką na pliku `./gui/target/turing-machine-gui.cmd`.
-
-UWAGA:
-Ze względu na bug w bibliotece do rysowania grafów GraphViz,
-możliwe jest uruchomienie jednej instancji programu w trybie GUI. 
-Dodatkowo ta biblioteka używa prehistorycznej Javy sprzed czasów 
-modułów i stąd mogą pojawić się warningi w stylu: 
-`WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module`.

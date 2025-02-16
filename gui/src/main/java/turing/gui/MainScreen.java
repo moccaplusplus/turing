@@ -2,7 +2,6 @@ package turing.gui;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
 import turing.machine.Log;
 import turing.machine.Machine;
 import turing.machine.Settings;
@@ -22,7 +21,6 @@ import static turing.machine.Msg.msg;
 public class MainScreen extends SplitPane {
     private static final String LAYOUT = "main_screen.fxml";
 
-    private final Object syncLock = new Object();
     private final Log log;
 
     @FXML
@@ -32,14 +30,14 @@ public class MainScreen extends SplitPane {
     private PreviewWidget previewWidget;
 
     @FXML
-    private TextArea console;
+    private ConsoleWidget consoleWidget;
 
     public MainScreen() {
         initComponent(this, LAYOUT);
         settingsWidget.setLoadListener(this::readSettings);
         settingsWidget.setExecuteListener(this::execute);
         previewWidget.setDisable(true);
-        log = new Log(this::writeConsole);
+        log = new Log(consoleWidget::writeConsole);
     }
 
     private void readSettings() {
@@ -47,7 +45,7 @@ public class MainScreen extends SplitPane {
         var charset = settingsWidget.getCharset();
         previewWidget.setDisable(true);
         settingsWidget.preventExecution(true);
-        clearConsole();
+        consoleWidget.clearConsole();
         runInBackgroundThread(() -> {
             try {
                 var settings = Settings.parse(Path.of(inputFile), Charset.forName(charset));
@@ -55,15 +53,16 @@ public class MainScreen extends SplitPane {
                 log.settings(settings);
                 runInFxApplicationThread(() -> {
                     settingsWidget.setSettings(settings);
-                    previewWidget.init(settings, () -> settingsWidget.preventExecution(false));
+                    previewWidget.init(settings);
+                    settingsWidget.preventExecution(false);
                 });
             } catch (Exception e) {
                 runInFxApplicationThread(() -> {
-                    settingsWidget.setSettings(null);
                     previewWidget.clear();
+                    settingsWidget.setSettings(null);
                     settingsWidget.preventExecution(false);
                 });
-                writeConsole(msg(e));
+                consoleWidget.writeConsole(msg(e));
             }
         });
     }
@@ -76,7 +75,7 @@ public class MainScreen extends SplitPane {
 
         settingsWidget.preventExecution(true);
         previewWidget.setDisable(false);
-        clearConsole();
+        consoleWidget.clearConsole();
 
         runInBackgroundThread(new Runnable() {
             private PrintWriter fileWriter;
@@ -146,34 +145,15 @@ public class MainScreen extends SplitPane {
             }
 
             private void doCatch(Exception e) {
-                writeConsole(msg(e));
+                consoleWidget.writeConsole(msg(e));
                 doFinally();
             }
 
             private void doFinally() {
                 log.appenders.clear();
-                log.appenders.add(MainScreen.this::writeConsole);
+                log.appenders.add(consoleWidget::writeConsole);
                 fileWriter.close();
                 runInFxApplicationThread(() -> settingsWidget.preventExecution(false));
-            }
-        });
-    }
-
-    private void writeConsole(String text) {
-        runInFxApplicationThread(() -> {
-            synchronized (syncLock) {
-                console.appendText(text);
-                console.appendText(System.lineSeparator());
-                console.setScrollTop(Double.MAX_VALUE);
-            }
-        });
-    }
-
-    private void clearConsole() {
-        runInFxApplicationThread(() -> {
-            synchronized (syncLock) {
-                console.clear();
-                console.setScrollTop(0);
             }
         });
     }

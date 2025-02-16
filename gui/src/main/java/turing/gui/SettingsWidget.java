@@ -20,7 +20,7 @@ import static turing.machine.Cmd.DEFAULT_OUT;
 
 public class SettingsWidget extends GridPane {
     private static final String LAYOUT = "settings_widget.fxml";
-    private static final String DEFAULT_DELAY = "500";
+    private static final long DEFAULT_DELAY = 150;
 
     @FXML
     private TextField inputFileField;
@@ -66,7 +66,7 @@ public class SettingsWidget extends GridPane {
         outputFilenameField.setText(DEFAULT_OUT);
         outputFilenameField.textProperty().addListener(e -> updateExecuteButton());
         delayField.setTextFormatter(regexFormatter("^\\d*$"));
-        delayField.setText(DEFAULT_DELAY);
+        delayField.setText(String.valueOf(DEFAULT_DELAY));
         delayField.textProperty().addListener(e -> updateExecuteButton());
         executeButton.setDisable(true);
     }
@@ -89,9 +89,9 @@ public class SettingsWidget extends GridPane {
 
     public long getDelay() {
         try {
-            return Math.max(0, Long.parseLong(delayField.getText()));
+            return Math.max(1, Long.parseLong(delayField.getText()));
         } catch (Exception e) {
-            return 0;
+            return DEFAULT_DELAY;
         }
     }
 

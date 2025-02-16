@@ -74,10 +74,10 @@ public class BandWidget extends BorderPane {
     }
 
     public void preview(String band, int head) {
-        int start = Math.max(0, head - DISPLAY_COUNT / 2);
+        int start = Math.min(band.length() - DISPLAY_COUNT, Math.max(0, head - DISPLAY_COUNT / 2));
         updateNums(start);
         writeCells(band.substring(start, start + DISPLAY_COUNT));
-        selectCell(head + start);
+        selectCell(head - start);
         label.setText("Band Size: " + band.length());
     }
 

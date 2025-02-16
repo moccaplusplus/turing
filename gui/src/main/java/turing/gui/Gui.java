@@ -11,14 +11,25 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static turing.machine.Msg.msg;
+
 public class Gui extends Application {
-    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private static final Collection<Runnable> onCloseListeners = new ArrayList<>();
+    private static final ScheduledExecutorService executor;
 
     static {
+        executor = Executors.newSingleThreadScheduledExecutor();
+        addOnCloseListener(executor::shutdownNow);
+
+        Graphviz.useEngine(new VizHack());
+        addOnCloseListener(Graphviz::releaseEngine);
+
         var noop = new PrintStream(PrintStream.nullOutputStream());
         System.setOut(noop);
         System.setErr(noop);
@@ -36,6 +47,12 @@ public class Gui extends Application {
             return fxmlLoader.load();
         } catch (IOException exception) {
             throw new RuntimeException(exception);
+        }
+    }
+
+    public static void addOnCloseListener(Runnable onClose) {
+        synchronized (onCloseListeners) {
+            onCloseListeners.add(onClose);
         }
     }
 
@@ -65,7 +82,6 @@ public class Gui extends Application {
 
     @Override
     public void start(Stage stage) {
-        Graphviz.useEngine(new VizHack());
         var mainScreen = new MainScreen();
         var scene = new Scene(mainScreen);
         stage.setScene(scene);
@@ -75,7 +91,12 @@ public class Gui extends Application {
 
     @Override
     public void stop() {
-        executor.close();
-        Graphviz.releaseEngine();
+        for (var onClose : onCloseListeners) {
+            try {
+                onClose.run();
+            } catch (Throwable e) {
+                System.err.println(msg(e));
+            }
+        }
     }
 }
