@@ -3,9 +3,10 @@ package turing.gui;
 import guru.nidi.graphviz.attribute.Attributes;
 import guru.nidi.graphviz.attribute.ForLink;
 import guru.nidi.graphviz.attribute.ForNode;
+import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.engine.Rasterizer;
+import guru.nidi.graphviz.engine.Renderer;
 import guru.nidi.graphviz.model.Link;
-import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.model.MutableNode;
 import javafx.fxml.FXML;
 import javafx.scene.control.ProgressIndicator;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Supplier;
 
 import static guru.nidi.graphviz.attribute.Attributes.attr;
 import static guru.nidi.graphviz.attribute.Attributes.attrs;
@@ -60,6 +60,7 @@ public class GraphWidget extends StackPane {
     private static final ExecutorService renderingThread = Executors.newSingleThreadExecutor();
 
     static {
+        renderingThread.execute(() -> Graphviz.useEngine(new GraphvizHackEngine(false)));
         addOnCloseListener(renderingThread::shutdownNow);
     }
 
@@ -78,8 +79,8 @@ public class GraphWidget extends StackPane {
     // access only from rendering thread
     private Map<String, MutableNode> nodeMap;
     private Map<String, Map<String, Link>> linkMap;
-    private Supplier<Image> viz;
     private Runnable deselectCallback;
+    private Renderer renderer;
 
     public GraphWidget() {
         initComponent(this, LAYOUT);
@@ -128,7 +129,7 @@ public class GraphWidget extends StackPane {
         deselectInRenderingThread();
         nodeMap = null;
         linkMap = null;
-        viz = null;
+        renderer = null;
     }
 
     private void renderNext() {
@@ -203,11 +204,11 @@ public class GraphWidget extends StackPane {
                 .add(new ArrayList<>(nodeMap.values()));
         this.nodeMap = nodeMap;
         this.linkMap = linkMap;
-        viz = viz(graph, (int) getMaxWidth());
+        renderer = fromGraph(graph).width((int) getMaxWidth()).rasterize(Rasterizer.SALAMANDER);
     }
 
     private void drawInRenderingThread() {
-        var image = viz.get();
+        var image = renderImageInRenderingThread();
         runInFxApplicationThread(() -> {
             progressIndicator.setVisible(false);
             imageView.setVisible(true);
@@ -215,23 +216,14 @@ public class GraphWidget extends StackPane {
         });
     }
 
-    private static String edgeLabel(Transition t) {
-        return format("(%s, %s, %s)", t.readChar(), t.writeChar(), t.moveDir());
-    }
-
-    private Supplier<Image> viz(MutableGraph graph, int width) {
-        var renderer = fromGraph(graph).width(width).rasterize(Rasterizer.SALAMANDER);
-        var outputStream = new ByteArrayOutputStream(1 << 15);
-        return () -> {
-            try {
-                renderer.toOutputStream(outputStream);
-                return new Image(new ByteArrayInputStream(outputStream.toByteArray()));
-            } catch (Throwable e) {
-                return null;
-            } finally {
-                outputStream.reset();
-            }
-        };
+    private Image renderImageInRenderingThread() {
+        try {
+            var outputStream = new ByteArrayOutputStream(1 << 15);
+            renderer.toOutputStream(outputStream);
+            return new Image(new ByteArrayInputStream(outputStream.toByteArray()));
+        } catch (Throwable e) {
+            return null;
+        }
     }
 
     private void runInRenderingThread(Runnable runnable) {
@@ -240,5 +232,9 @@ public class GraphWidget extends StackPane {
         } catch (RejectedExecutionException e) {
             System.err.println(msg(e));
         }
+    }
+
+    private static String edgeLabel(Transition t) {
+        return format("(%s, %s, %s)", t.readChar(), t.writeChar(), t.moveDir());
     }
 }

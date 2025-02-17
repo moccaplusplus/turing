@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 import static guru.nidi.graphviz.engine.GraphvizLoader.loadAsString;
 
-public class VizHack extends AbstractJsGraphvizEngine {
+public class GraphvizHackEngine extends AbstractJsGraphvizEngine {
     private static final ScriptEngineFactory NASHORN_FACTORY = new NashornScriptEngineFactory();
     private static final String PROMISE_JS_CODE = loadAsString("net/arnx/nashorn/lib/promise.js");
 
@@ -44,7 +44,7 @@ public class VizHack extends AbstractJsGraphvizEngine {
         };
     }
 
-    public VizHack() {
-        super(false, engineSupplier());
+    public GraphvizHackEngine(boolean sync) {
+        super(sync, engineSupplier());
     }
 }

@@ -1,6 +1,5 @@
 package turing.gui;
 
-import guru.nidi.graphviz.engine.Graphviz;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -26,9 +25,6 @@ public class Gui extends Application {
     static {
         executor = Executors.newSingleThreadScheduledExecutor();
         addOnCloseListener(executor::shutdownNow);
-
-        Graphviz.useEngine(new VizHack());
-        addOnCloseListener(Graphviz::releaseEngine);
 
         var noop = new PrintStream(PrintStream.nullOutputStream());
         System.setOut(noop);
