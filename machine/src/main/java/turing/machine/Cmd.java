@@ -69,7 +69,7 @@ public class Cmd {
     }
 
     private static void run(Settings settings, PrintWriter fileWriter) {
-        var log = new Log(out::println, fileWriter::println);
+        var log = new Log(out::print, fileWriter::print);
         log.settings(settings);
 
         long start = System.currentTimeMillis();
@@ -89,7 +89,8 @@ public class Cmd {
             log.iteration(iteration, transition, machine);
 
             if (iteration == REPORT_ITERATIONS_UNTIL) {
-                log.appenders.clear();
+                log.abandoned(iteration);
+                log.clearAppender();
                 fileWriter.close();
             }
         }

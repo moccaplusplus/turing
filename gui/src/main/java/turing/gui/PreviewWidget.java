@@ -9,7 +9,6 @@ import turing.machine.Transition;
 
 import static java.lang.String.format;
 import static turing.gui.Gui.initComponent;
-import static turing.gui.Gui.runInFxApplicationThread;
 
 public class PreviewWidget extends BorderPane {
     private static final String LAYOUT = "preview_widget.fxml";
@@ -51,7 +50,12 @@ public class PreviewWidget extends BorderPane {
     public void result(int iteration, boolean accepted) {
         var statusText = format("Finished in %s State after %d iterations",
                 accepted ? "Accepting" : "Non-Accepting", iteration);
-        runInFxApplicationThread(() -> statusLabel.setText(statusText));
+        statusLabel.setText(statusText);
+    }
+
+    public void abandoned(int iteration) {
+        var statusText = format("UI updates interrupted after %d iterations. Machine still running...", iteration);
+        statusLabel.setText(statusText);
     }
 
     public void clear() {
