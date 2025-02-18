@@ -88,7 +88,7 @@ public class MainScreen extends SplitPane {
                 try {
                     var outputPath = Path.of(outputDir).resolve(outputFilename);
                     fileWriter = new PrintWriter(Files.newOutputStream(outputPath), true);
-                    log.appenders.add(fileWriter::println);
+                    log.addAppender(fileWriter::print);
                     log.settings(settings);
                     start = System.currentTimeMillis();
                     machine = new Machine(settings.startState(), settings.finalStates(), settings.transitions());
@@ -115,7 +115,9 @@ public class MainScreen extends SplitPane {
 
             private void showState() {
                 if (iteration == REPORT_ITERATIONS_UNTIL) {
-                    log.appenders.clear();
+                    runInFxApplicationThread(() -> previewWidget.abandoned(iteration));
+                    log.abandoned(iteration);
+                    log.clearAppender();
                     fileWriter.close();
                 }
                 runInFxApplicationThread(() -> previewWidget.update(iteration, machine));
@@ -150,8 +152,7 @@ public class MainScreen extends SplitPane {
             }
 
             private void doFinally() {
-                log.appenders.clear();
-                log.appenders.add(consoleWidget::writeConsole);
+                log.setAppender(consoleWidget::writeConsole);
                 fileWriter.close();
                 runInFxApplicationThread(() -> settingsWidget.preventExecution(false));
             }

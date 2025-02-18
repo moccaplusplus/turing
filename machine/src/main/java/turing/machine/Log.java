@@ -1,18 +1,31 @@
 package turing.machine;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static turing.machine.Msg.indent;
 import static turing.machine.Msg.msg;
 
 public class Log {
-    public final List<Consumer<String>> appenders;
+    public Consumer<String> appender;
 
     @SafeVarargs
-    public Log(Consumer<String>... appenders) {
-        this.appenders = new ArrayList<>(List.of(appenders));
+    public Log(Consumer<String>... appender) {
+        setAppender(appender);
+    }
+
+    @SafeVarargs
+    public final void setAppender(Consumer<String>... appender) {
+        this.appender = Arrays.stream(appender).reduce(Consumer::andThen).orElse(null);
+    }
+
+    @SafeVarargs
+    public final void addAppender(Consumer<String>... appender) {
+        this.appender = Arrays.stream(appender).reduce(this.appender, Consumer::andThen);
+    }
+
+    public void clearAppender() {
+        setAppender();
     }
 
     public void settings(Settings settings) {
@@ -45,11 +58,13 @@ public class Log {
         log(indent("Time: " + time + "ms"));
     }
 
+    public void abandoned(int iteration) {
+        log("Logging abandoned after " + iteration + "iterations. Machine still running...");
+    }
+
     public void log(String msg) {
-        for (var line : msg.split(System.lineSeparator())) {
-            for (var appender : appenders) {
-                appender.accept(line);
-            }
+        if (appender != null) {
+            appender.accept(msg + System.lineSeparator());
         }
     }
 }

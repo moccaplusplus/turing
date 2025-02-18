@@ -17,5 +17,5 @@
             <PreviewWidget fx:id="previewWidget"/>
         </ScrollPane>
     </SplitPane>
-    <ConsoleWidget fx:id="consoleWidget" maxLines="75"/>
+    <ConsoleWidget fx:id="consoleWidget" maxLines="100"/>
 </fx:root>

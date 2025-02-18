@@ -35,7 +35,7 @@ Zbudowane podprojekty znajdują się odpowiednio w katalogach:
 
 Aby zbudować projekt bez uruchamiania testów wystarczy dodać opcję `-DskipTests`.
 ```shell
-./mvnw package -DskipTests
+./mvnw install -DskipTests
 ```
 ## Uruchomienie Projektu
 
@@ -65,7 +65,7 @@ w katalogu `machine/src/test/resources` wewnątrz projektu.
 Aby uruchomić zbudowany projekt z przykładowym plikiem wejściowym,
 w katalogu głównym projektu, wpisujemy w konsoli:
 ```shell
-./machine/target/turing-machine ./machine/src/test/resources/input.txt
+./machine/target/turing-machine ./machine/src/test/resources/przykladowy_input.txt
 ```
 Wynik działania programu znajduje się w pliku `out.log` w katalogu, w którym 
 uruchomiliśmy program (o ile nie podaliśmy innej ścieżki w opcjach uruchomienia programu)
